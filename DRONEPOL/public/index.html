@@ -494,6 +494,15 @@
         style="margin-top:15px;">
 
         <button
+          id="nativeScan"
+          class="primary"
+          type="button">
+
+          Abrir câmera do celular
+
+        </button>
+
+        <button
           id="startScan"
           class="primary">
 
@@ -519,6 +528,13 @@
         </button>
 
       </div>
+
+      <input
+        id="nativeCameraInput"
+        class="hidden"
+        type="file"
+        accept="image/*"
+        capture="environment">
 
     </section>
 
@@ -829,6 +845,8 @@ let scanner = null;
 let scanning = false;
 
 let cameraZoom = 2;
+
+let imageScanner = null;
 
 
 // ============================================
@@ -1756,6 +1774,99 @@ document
     "focusCamera"
   )
   .onclick = focusCamera;
+
+
+// ============================================
+// CÂMERA NATIVA DO CELULAR
+// ============================================
+
+document
+  .getElementById(
+    "nativeScan"
+  )
+  .onclick = () => {
+
+    document
+      .getElementById(
+        "nativeCameraInput"
+      )
+      .click();
+
+  };
+
+
+document
+  .getElementById(
+    "nativeCameraInput"
+  )
+  .addEventListener(
+    "change",
+    async event => {
+
+      const file =
+        event.target.files[0];
+
+      if (!file) {
+
+        return;
+
+      }
+
+      try {
+
+        imageScanner =
+          new Html5Qrcode(
+            "reader"
+          );
+
+        const decodedText =
+          await imageScanner.scanFile(
+            file,
+            true
+          );
+
+        document.getElementById(
+          "scanResult"
+        ).textContent =
+          "QR lido: " + decodedText;
+
+        document.getElementById(
+          "scanResult"
+        ).classList.remove(
+          "hidden"
+        );
+
+        await lookupSerial(
+          decodedText
+        );
+
+        toast(
+          "QR lido pela câmera do celular."
+        );
+
+      } catch (error) {
+
+        console.error(error);
+
+        toast(
+          "Não foi possível ler o QR Code. Tire uma foto mais próxima."
+        );
+
+      } finally {
+
+        if (imageScanner) {
+
+          imageScanner.clear()
+            .catch(() => {});
+
+        }
+
+        event.target.value = "";
+
+      }
+
+    }
+  );
 
 
 // ============================================
