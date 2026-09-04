@@ -1,0 +1,4 @@
+node_modules/
+dronepol.db
+dronepol.db-shm
+dronepol.db-wal

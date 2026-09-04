@@ -1,0 +1,1809 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+
+  <meta charset="UTF-8">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  >
+
+  <title>
+    DronePol - Controle de Baterias
+  </title>
+
+  <!-- Biblioteca para leitura de QR Code -->
+  <script
+    src="https://unpkg.com/html5-qrcode"
+    type="text/javascript">
+  </script>
+
+  <style>
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+
+      margin: 0;
+
+      font-family:
+        Arial,
+        Helvetica,
+        sans-serif;
+
+      background: #f4f6f8;
+
+      color: #17202a;
+
+    }
+
+    header {
+
+      background: #111827;
+
+      color: white;
+
+      padding: 20px;
+
+    }
+
+    header .container {
+
+      max-width: 1100px;
+
+      margin: auto;
+
+      display: flex;
+
+      justify-content: space-between;
+
+      align-items: center;
+
+    }
+
+    .logo {
+
+      font-size: 22px;
+
+      font-weight: bold;
+
+    }
+
+    .subtitle {
+
+      font-size: 12px;
+
+      opacity: 0.7;
+
+      margin-top: 4px;
+
+    }
+
+    main {
+
+      max-width: 1100px;
+
+      margin: 25px auto;
+
+      padding: 0 15px 40px;
+
+    }
+
+    .grid {
+
+      display: grid;
+
+      grid-template-columns:
+        1fr 1fr;
+
+      gap: 20px;
+
+    }
+
+    .card {
+
+      background: white;
+
+      border-radius: 16px;
+
+      padding: 20px;
+
+      border: 1px solid #e4e7ec;
+
+      box-shadow:
+        0 5px 15px
+        rgba(0,0,0,0.04);
+
+    }
+
+    h2 {
+
+      margin-top: 0;
+
+    }
+
+    .muted {
+
+      color: #667085;
+
+    }
+
+    button {
+
+      border: none;
+
+      border-radius: 10px;
+
+      padding: 12px 16px;
+
+      font-weight: bold;
+
+      cursor: pointer;
+
+    }
+
+    .primary {
+
+      background: #111827;
+
+      color: white;
+
+    }
+
+    .secondary {
+
+      background: #eef2f6;
+
+      color: #111827;
+
+    }
+
+    .danger {
+
+      background: #fee4e2;
+
+      color: #b42318;
+
+    }
+
+    .row {
+
+      display: flex;
+
+      gap: 10px;
+
+      flex-wrap: wrap;
+
+    }
+
+    input,
+    select,
+    textarea {
+
+      width: 100%;
+
+      padding: 12px;
+
+      border: 1px solid #d0d5dd;
+
+      border-radius: 10px;
+
+      font-size: 15px;
+
+    }
+
+    textarea {
+
+      min-height: 90px;
+
+      resize: vertical;
+
+    }
+
+    label {
+
+      display: block;
+
+      font-weight: bold;
+
+      font-size: 13px;
+
+      margin-top: 14px;
+
+      margin-bottom: 6px;
+
+    }
+
+    #reader {
+
+      width: 100%;
+
+      max-width: 450px;
+
+      margin: auto;
+
+    }
+
+    .result {
+
+      background: #f2f4f7;
+
+      padding: 14px;
+
+      margin-top: 15px;
+
+      border-radius: 10px;
+
+      word-break: break-all;
+
+    }
+
+    .hidden {
+
+      display: none !important;
+
+    }
+
+    .serial {
+
+      font-family:
+        monospace;
+
+      font-size: 20px;
+
+      font-weight: bold;
+
+      word-break: break-all;
+
+    }
+
+    .badge {
+
+      display: inline-block;
+
+      padding: 6px 10px;
+
+      border-radius: 50px;
+
+      background: #ecfdf3;
+
+      color: #067647;
+
+      font-size: 12px;
+
+      font-weight: bold;
+
+    }
+
+    .info-grid {
+
+      display: grid;
+
+      grid-template-columns:
+        1fr 1fr;
+
+      gap: 12px;
+
+      margin-top: 15px;
+
+    }
+
+    .info {
+
+      border: 1px solid #e4e7ec;
+
+      border-radius: 12px;
+
+      padding: 12px;
+
+    }
+
+    .info small {
+
+      display: block;
+
+      color: #667085;
+
+      margin-bottom: 5px;
+
+    }
+
+    table {
+
+      width: 100%;
+
+      border-collapse: collapse;
+
+    }
+
+    th,
+    td {
+
+      padding: 12px 8px;
+
+      border-bottom: 1px solid #e4e7ec;
+
+      text-align: left;
+
+    }
+
+    th {
+
+      font-size: 12px;
+
+      color: #667085;
+
+    }
+
+    .search {
+
+      margin-bottom: 15px;
+
+    }
+
+    .toast {
+
+      position: fixed;
+
+      right: 20px;
+
+      bottom: 20px;
+
+      background: #111827;
+
+      color: white;
+
+      padding: 14px 18px;
+
+      border-radius: 10px;
+
+    }
+
+    @media(max-width:800px) {
+
+      .grid {
+
+        grid-template-columns: 1fr;
+
+      }
+
+    }
+
+    @media(max-width:500px) {
+
+      .info-grid {
+
+        grid-template-columns: 1fr;
+
+      }
+
+    }
+
+  </style>
+
+</head>
+
+<body>
+
+<header>
+
+  <div class="container">
+
+    <div>
+
+      <div class="logo">
+        DRONEPOL
+      </div>
+
+      <div class="subtitle">
+        CONTROLE DE BATERIAS • FASE 1 MVP
+      </div>
+
+    </div>
+
+    <div>
+      QR Code → Série → Banco
+    </div>
+
+  </div>
+
+</header>
+
+
+<main>
+
+
+  <!-- ============================== -->
+  <!-- LEITOR QR CODE -->
+  <!-- ============================== -->
+
+  <div class="grid">
+
+    <section class="card">
+
+      <h2>
+        📷 Ler QR Code
+      </h2>
+
+      <p class="muted">
+
+        Aponte a câmera para o
+        QR Code da bateria.
+
+      </p>
+
+      <div id="reader"></div>
+
+      <div
+        id="scanResult"
+        class="result hidden">
+      </div>
+
+      <div
+        class="row"
+        style="margin-top:15px;">
+
+        <button
+          id="startScan"
+          class="primary">
+
+          Iniciar câmera
+
+        </button>
+
+        <button
+          id="stopScan"
+          class="secondary">
+
+          Parar
+
+        </button>
+
+      </div>
+
+    </section>
+
+
+    <!-- ============================== -->
+    <!-- CONSULTA -->
+    <!-- ============================== -->
+
+    <section class="card">
+
+      <h2>
+        🔎 Consultar bateria
+      </h2>
+
+      <p class="muted">
+
+        Digite o número de série
+        ou use o leitor QR Code.
+
+      </p>
+
+      <div class="row">
+
+        <input
+          id="serialSearch"
+          placeholder="Ex.: 7PAPN9TCA0001R">
+
+        <button
+          id="searchBtn"
+          class="primary">
+
+          Consultar
+
+        </button>
+
+      </div>
+
+      <div id="lookup"></div>
+
+    </section>
+
+  </div>
+
+
+  <!-- ============================== -->
+  <!-- CADASTRO -->
+  <!-- ============================== -->
+
+  <section
+    class="card"
+    style="margin-top:20px;">
+
+    <h2>
+      🔋 Cadastro de bateria
+    </h2>
+
+    <p
+      id="formMode"
+      class="muted">
+
+      Cadastre uma nova bateria
+      ou carregue uma bateria existente.
+
+    </p>
+
+    <form id="batteryForm">
+
+      <input
+        type="hidden"
+        id="batteryId">
+
+
+      <label>
+        Número de série
+      </label>
+
+      <input
+        id="numero_serie"
+        required
+        placeholder="Número lido pelo QR Code">
+
+
+      <div class="grid">
+
+        <div>
+
+          <label>
+            Modelo
+          </label>
+
+          <input
+            id="modelo"
+            value="DJI TB65">
+
+        </div>
+
+
+        <div>
+
+          <label>
+            Ciclos
+          </label>
+
+          <input
+            id="ciclos"
+            type="number"
+            min="0"
+            value="0">
+
+        </div>
+
+
+        <div>
+
+          <label>
+            Status
+          </label>
+
+          <select id="status">
+
+            <option>
+              Disponível
+            </option>
+
+            <option>
+              Em uso
+            </option>
+
+            <option>
+              Manutenção
+            </option>
+
+            <option>
+              Bloqueada
+            </option>
+
+          </select>
+
+        </div>
+
+
+        <div>
+
+          <label>
+            Drone atual
+          </label>
+
+          <input
+            id="drone"
+            placeholder="Ex.: M350-023">
+
+        </div>
+
+
+        <div>
+
+          <label>
+            Inspetoria atual
+          </label>
+
+          <input
+            id="inspetoria"
+            placeholder="Ex.: Campinas">
+
+        </div>
+
+
+        <div>
+
+          <label>
+            Observações
+          </label>
+
+          <textarea
+            id="observacoes"
+            placeholder="Opcional">
+          </textarea>
+
+        </div>
+
+      </div>
+
+
+      <div
+        class="row"
+        style="margin-top:15px;">
+
+        <button
+          type="submit"
+          class="primary">
+
+          Salvar bateria
+
+        </button>
+
+        <button
+          type="button"
+          id="newBtn"
+          class="secondary">
+
+          Novo cadastro
+
+        </button>
+
+        <button
+          type="button"
+          id="deleteBtn"
+          class="danger hidden">
+
+          Excluir
+
+        </button>
+
+      </div>
+
+    </form>
+
+  </section>
+
+
+  <!-- ============================== -->
+  <!-- LISTA DE BATERIAS -->
+  <!-- ============================== -->
+
+  <section
+    class="card"
+    style="margin-top:20px;">
+
+    <h2>
+      📋 Baterias cadastradas
+    </h2>
+
+    <input
+      id="tableSearch"
+      class="search"
+      placeholder="Pesquisar bateria...">
+
+    <div style="overflow:auto;">
+
+      <table>
+
+        <thead>
+
+          <tr>
+
+            <th>
+              Número de série
+            </th>
+
+            <th>
+              Modelo
+            </th>
+
+            <th>
+              Ciclos
+            </th>
+
+            <th>
+              Status
+            </th>
+
+            <th>
+              Drone
+            </th>
+
+            <th>
+              Inspetoria
+            </th>
+
+          </tr>
+
+        </thead>
+
+        <tbody
+          id="batteryTable">
+        </tbody>
+
+      </table>
+
+    </div>
+
+  </section>
+
+
+</main>
+
+
+<div
+  id="toast"
+  class="toast hidden">
+</div>
+
+
+<script>
+
+let batteries = [];
+
+let scanner = null;
+
+let scanning = false;
+
+
+// ============================================
+// FUNÇÃO TOAST
+// ============================================
+
+function toast(message) {
+
+  const element =
+    document.getElementById("toast");
+
+  element.textContent = message;
+
+  element.classList.remove("hidden");
+
+  setTimeout(() => {
+
+    element.classList.add("hidden");
+
+  }, 2500);
+
+}
+
+
+// ============================================
+// ESCAPAR HTML
+// ============================================
+
+function escapeHtml(value) {
+
+  return String(value ?? "")
+    .replace(/[&<>"']/g, character => {
+
+      return {
+
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#039;"
+
+      }[character];
+
+    });
+
+}
+
+
+// ============================================
+// CARREGAR BATERIAS
+// ============================================
+
+async function loadBatteries() {
+
+  const response =
+    await fetch("/api/baterias");
+
+  batteries =
+    await response.json();
+
+  renderTable();
+
+}
+
+
+// ============================================
+// MOSTRAR TABELA
+// ============================================
+
+function renderTable() {
+
+  const search =
+    document
+      .getElementById("tableSearch")
+      .value
+      .toLowerCase()
+      .trim();
+
+
+  const filtered =
+    batteries.filter(bateria => {
+
+      return [
+
+        bateria.numero_serie,
+        bateria.modelo,
+        bateria.drone,
+        bateria.inspetoria,
+        bateria.status
+
+      ]
+      .join(" ")
+      .toLowerCase()
+      .includes(search);
+
+    });
+
+
+  const table =
+    document.getElementById("batteryTable");
+
+
+  table.innerHTML =
+    filtered.map(bateria => `
+
+      <tr
+        data-id="${bateria.id}"
+        style="cursor:pointer;">
+
+        <td>
+
+          <strong>
+            ${escapeHtml(
+              bateria.numero_serie
+            )}
+          </strong>
+
+        </td>
+
+        <td>
+          ${escapeHtml(
+            bateria.modelo
+          )}
+        </td>
+
+        <td>
+          ${bateria.ciclos}
+        </td>
+
+        <td>
+
+          <span class="badge">
+
+            ${escapeHtml(
+              bateria.status
+            )}
+
+          </span>
+
+        </td>
+
+        <td>
+
+          ${escapeHtml(
+            bateria.drone || "—"
+          )}
+
+        </td>
+
+        <td>
+
+          ${escapeHtml(
+            bateria.inspetoria || "—"
+          )}
+
+        </td>
+
+      </tr>
+
+    `).join("");
+
+
+  document
+    .querySelectorAll(
+      "#batteryTable tr[data-id]"
+    )
+    .forEach(row => {
+
+      row.addEventListener(
+        "click",
+        () => {
+
+          const bateria =
+            batteries.find(
+              item =>
+                item.id ==
+                row.dataset.id
+            );
+
+          if (bateria) {
+
+            fillForm(bateria);
+
+          }
+
+        }
+      );
+
+    });
+
+}
+
+
+// ============================================
+// PREENCHER FORMULÁRIO
+// ============================================
+
+function fillForm(bateria) {
+
+  document.getElementById(
+    "batteryId"
+  ).value = bateria.id;
+
+
+  document.getElementById(
+    "numero_serie"
+  ).value =
+    bateria.numero_serie;
+
+
+  document.getElementById(
+    "modelo"
+  ).value =
+    bateria.modelo;
+
+
+  document.getElementById(
+    "ciclos"
+  ).value =
+    bateria.ciclos;
+
+
+  document.getElementById(
+    "status"
+  ).value =
+    bateria.status;
+
+
+  document.getElementById(
+    "drone"
+  ).value =
+    bateria.drone || "";
+
+
+  document.getElementById(
+    "inspetoria"
+  ).value =
+    bateria.inspetoria || "";
+
+
+  document.getElementById(
+    "observacoes"
+  ).value =
+    bateria.observacoes || "";
+
+
+  document.getElementById(
+    "formMode"
+  ).textContent =
+    "Editando bateria #" +
+    bateria.id;
+
+
+  document.getElementById(
+    "deleteBtn"
+  ).classList.remove(
+    "hidden"
+  );
+
+}
+
+
+// ============================================
+// LIMPAR FORMULÁRIO
+// ============================================
+
+function clearForm() {
+
+  document
+    .getElementById(
+      "batteryForm"
+    )
+    .reset();
+
+
+  document.getElementById(
+    "batteryId"
+  ).value = "";
+
+
+  document.getElementById(
+    "modelo"
+  ).value =
+    "DJI TB65";
+
+
+  document.getElementById(
+    "ciclos"
+  ).value = 0;
+
+
+  document.getElementById(
+    "status"
+  ).value =
+    "Disponível";
+
+
+  document.getElementById(
+    "formMode"
+  ).textContent =
+    "Cadastre uma nova bateria ou carregue uma existente.";
+
+
+  document.getElementById(
+    "deleteBtn"
+  ).classList.add(
+    "hidden"
+  );
+
+}
+
+
+// ============================================
+// MOSTRAR RESULTADO
+// ============================================
+
+function showLookup(bateria) {
+
+  const lookup =
+    document.getElementById(
+      "lookup"
+    );
+
+
+  lookup.innerHTML = `
+
+    <div
+      class="result"
+      style="margin-top:15px;">
+
+      <div
+        style="
+          display:flex;
+          justify-content:space-between;
+          gap:10px;
+        ">
+
+        <div>
+
+          <div class="muted">
+            Número de série
+          </div>
+
+          <div class="serial">
+
+            ${escapeHtml(
+              bateria.numero_serie
+            )}
+
+          </div>
+
+        </div>
+
+        <span class="badge">
+
+          ${escapeHtml(
+            bateria.status
+          )}
+
+        </span>
+
+      </div>
+
+
+      <div class="info-grid">
+
+
+        <div class="info">
+
+          <small>
+            Modelo
+          </small>
+
+          <strong>
+
+            ${escapeHtml(
+              bateria.modelo
+            )}
+
+          </strong>
+
+        </div>
+
+
+        <div class="info">
+
+          <small>
+            Ciclos
+          </small>
+
+          <strong>
+
+            ${bateria.ciclos}
+
+          </strong>
+
+        </div>
+
+
+        <div class="info">
+
+          <small>
+            Drone atual
+          </small>
+
+          <strong>
+
+            ${escapeHtml(
+              bateria.drone ||
+              "Não vinculado"
+            )}
+
+          </strong>
+
+        </div>
+
+
+        <div class="info">
+
+          <small>
+            Inspetoria atual
+          </small>
+
+          <strong>
+
+            ${escapeHtml(
+              bateria.inspetoria ||
+              "Não definida"
+            )}
+
+          </strong>
+
+        </div>
+
+
+      </div>
+
+
+      ${
+        bateria.observacoes
+          ? `
+
+            <p>
+
+              <small class="muted">
+                Observações
+              </small>
+
+              <br>
+
+              ${escapeHtml(
+                bateria.observacoes
+              )}
+
+            </p>
+
+          `
+          : ""
+      }
+
+
+      <button
+        id="editLookup"
+        class="primary"
+        style="margin-top:10px;">
+
+        Editar cadastro
+
+      </button>
+
+    </div>
+
+  `;
+
+
+  document.getElementById(
+    "editLookup"
+  ).onclick = () => {
+
+    fillForm(bateria);
+
+    window.scrollTo({
+
+      top:
+        document.body.scrollHeight,
+
+      behavior:
+        "smooth"
+
+    });
+
+  };
+
+}
+
+
+// ============================================
+// CONSULTAR POR NÚMERO DE SÉRIE
+// ============================================
+
+async function lookupSerial(serial) {
+
+  serial =
+    serial
+      .trim()
+      .toUpperCase();
+
+
+  if (!serial) {
+
+    toast(
+      "Informe ou leia um número de série."
+    );
+
+    return;
+
+  }
+
+
+  document.getElementById(
+    "serialSearch"
+  ).value =
+    serial;
+
+
+  const response =
+    await fetch(
+      "/api/baterias/" +
+      encodeURIComponent(serial)
+    );
+
+
+  if (response.ok) {
+
+    const bateria =
+      await response.json();
+
+
+    showLookup(bateria);
+
+    fillForm(bateria);
+
+    toast(
+      "Bateria encontrada."
+    );
+
+
+  } else {
+
+    document.getElementById(
+      "lookup"
+    ).innerHTML = `
+
+      <div class="result">
+
+        ⚠️ Bateria
+
+        <strong>
+          ${escapeHtml(serial)}
+        </strong>
+
+        não cadastrada.
+
+      </div>
+
+    `;
+
+
+    clearForm();
+
+
+    document.getElementById(
+      "numero_serie"
+    ).value =
+      serial;
+
+
+    document.getElementById(
+      "formMode"
+    ).textContent =
+      "Nova bateria encontrada pelo QR Code. Complete o cadastro.";
+
+
+    toast(
+      "QR lido. Bateria ainda não cadastrada."
+    );
+
+  }
+
+}
+
+
+// ============================================
+// INICIAR LEITOR QR
+// ============================================
+
+document
+  .getElementById(
+    "startScan"
+  )
+  .onclick = async () => {
+
+
+    if (scanning) {
+
+      return;
+
+    }
+
+
+    scanner =
+      new Html5Qrcode(
+        "reader"
+      );
+
+
+    try {
+
+      await scanner.start(
+
+        {
+          facingMode:
+            "environment"
+        },
+
+        {
+          fps: 10,
+
+          qrbox: {
+            width: 240,
+            height: 240
+          }
+
+        },
+
+        decodedText => {
+
+
+          document.getElementById(
+            "scanResult"
+          ).textContent =
+            "QR lido: " +
+            decodedText;
+
+
+          document.getElementById(
+            "scanResult"
+          ).classList.remove(
+            "hidden"
+          );
+
+
+          lookupSerial(
+            decodedText
+          );
+
+
+          scanner
+            .stop()
+            .catch(() => {});
+
+
+          scanning = false;
+
+        },
+
+        () => {}
+
+      );
+
+
+      scanning = true;
+
+
+      toast(
+        "Câmera iniciada."
+      );
+
+
+    } catch (error) {
+
+      console.error(error);
+
+
+      toast(
+        "Não foi possível iniciar a câmera."
+      );
+
+    }
+
+  };
+
+
+// ============================================
+// PARAR LEITOR
+// ============================================
+
+document
+  .getElementById(
+    "stopScan"
+  )
+  .onclick = async () => {
+
+
+    if (
+      scanner &&
+      scanning
+    ) {
+
+      try {
+
+        await scanner.stop();
+
+      } catch (error) {
+
+        console.error(error);
+
+      }
+
+
+      scanning = false;
+
+
+      toast(
+        "Câmera parada."
+      );
+
+    }
+
+  };
+
+
+// ============================================
+// BOTÃO CONSULTAR
+// ============================================
+
+document
+  .getElementById(
+    "searchBtn"
+  )
+  .onclick = () => {
+
+    lookupSerial(
+
+      document.getElementById(
+        "serialSearch"
+      ).value
+
+    );
+
+  };
+
+
+// ============================================
+// ENTER NA PESQUISA
+// ============================================
+
+document
+  .getElementById(
+    "serialSearch"
+  )
+  .addEventListener(
+    "keydown",
+    event => {
+
+      if (
+        event.key === "Enter"
+      ) {
+
+        event.preventDefault();
+
+        lookupSerial(
+
+          event.target.value
+
+        );
+
+      }
+
+    }
+  );
+
+
+// ============================================
+// PESQUISA DA TABELA
+// ============================================
+
+document
+  .getElementById(
+    "tableSearch"
+  )
+  .addEventListener(
+    "input",
+    renderTable
+  );
+
+
+// ============================================
+// NOVO CADASTRO
+// ============================================
+
+document
+  .getElementById(
+    "newBtn"
+  )
+  .onclick =
+    clearForm;
+
+
+// ============================================
+// SALVAR BATERIA
+// ============================================
+
+document
+  .getElementById(
+    "batteryForm"
+  )
+  .addEventListener(
+    "submit",
+    async event => {
+
+      event.preventDefault();
+
+
+      const id =
+        document.getElementById(
+          "batteryId"
+        ).value;
+
+
+      const dados = {
+
+        numero_serie:
+          document.getElementById(
+            "numero_serie"
+          ).value
+            .trim()
+            .toUpperCase(),
+
+        modelo:
+          document.getElementById(
+            "modelo"
+          ).value
+            .trim(),
+
+        ciclos:
+          Number(
+            document.getElementById(
+              "ciclos"
+            ).value
+          ) || 0,
+
+        status:
+          document.getElementById(
+            "status"
+          ).value,
+
+        drone:
+          document.getElementById(
+            "drone"
+          ).value
+            .trim(),
+
+        inspetoria:
+          document.getElementById(
+            "inspetoria"
+          ).value
+            .trim(),
+
+        observacoes:
+          document.getElementById(
+            "observacoes"
+          ).value
+            .trim()
+
+      };
+
+
+      const response =
+        await fetch(
+
+          id
+            ? "/api/baterias/" + id
+            : "/api/baterias",
+
+          {
+
+            method:
+              id
+                ? "PUT"
+                : "POST",
+
+            headers: {
+
+              "Content-Type":
+                "application/json"
+
+            },
+
+            body:
+              JSON.stringify(
+                dados
+              )
+
+          }
+
+        );
+
+
+      const resultado =
+        await response.json();
+
+
+      if (!response.ok) {
+
+        toast(
+          resultado.error ||
+          "Erro ao salvar bateria."
+        );
+
+        return;
+
+      }
+
+
+      toast(
+
+        id
+          ? "Bateria atualizada."
+          : "Bateria cadastrada."
+
+      );
+
+
+      fillForm(
+        resultado
+      );
+
+
+      showLookup(
+        resultado
+      );
+
+
+      await loadBatteries();
+
+    }
+
+  );
+
+
+// ============================================
+// EXCLUIR
+// ============================================
+
+document
+  .getElementById(
+    "deleteBtn"
+  )
+  .onclick =
+    async () => {
+
+
+      const id =
+        document.getElementById(
+          "batteryId"
+        ).value;
+
+
+      if (!id) {
+
+        return;
+
+      }
+
+
+      const confirmar =
+        confirm(
+          "Deseja realmente excluir esta bateria?"
+        );
+
+
+      if (!confirmar) {
+
+        return;
+
+      }
+
+
+      const response =
+        await fetch(
+
+          "/api/baterias/" +
+          id,
+
+          {
+            method:
+              "DELETE"
+          }
+
+        );
+
+
+      if (!response.ok) {
+
+        toast(
+          "Erro ao excluir bateria."
+        );
+
+        return;
+
+      }
+
+
+      toast(
+        "Bateria excluída."
+      );
+
+
+      clearForm();
+
+
+      document.getElementById(
+        "lookup"
+      ).innerHTML = "";
+
+
+      await loadBatteries();
+
+    };
+
+
+// ============================================
+// INICIALIZAÇÃO
+// ============================================
+
+loadBatteries();
+
+</script>
+
+</body>
+
+</html>

@@ -1,0 +1,13 @@
+{
+  "name": "mvp-baterias-dronepol",
+  "version": "1.0.0",
+  "description": "MVP para leitura de QR Code e cadastro/consulta de baterias de drones.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "better-sqlite3": "^11.10.0",
+    "express": "^5.1.0"
+  }
+}
