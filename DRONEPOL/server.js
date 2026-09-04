@@ -12,28 +12,13 @@ const db = new Database("dronepol.db");
 const sessoes = new Map();
 
 const servidores = [
-  ["", "", "6464203", "RICHARD SOARES MARIANO", "RICHARD"],
-  ["", "", "6488463", "ANGELO LACATIVA", "LACATIVA"],
-  ["SUBINSPETOR", "2832", "6486061", "ALEXANDRE MENDES", "MENDES"],
-  ["SUBINSPETOR", "5737", "6746578", "FLAVIO GOMES DA SILVA", "FLAVIO"],
-  ["SUBINSPETOR", "4599", "6807526", "RITA DE CASSIA GOMES HELENO", "RITA"],
-  ["SUBINSPETOR", "5952", "6961169", "VINICIUS LIMA FONSECA", "VINICIUS"],
-  ["SUBINSPETOR", "6275", "7088175", "EIDE JESUS NOGUEIRA", "EIDE"],
-  ["CE", "8267", "7563345", "PAULO SERGIO LINO DOS SANTOS", "LINO"],
-  ["CE", "8715", "7722524", "PAULO ROBERTO OLIVEIRA MENDES", "MENDES"],
-  ["CE", "9257", "8156701", "ANSELMO DOS SANTOS FERNANDES", "ANSELMO"],
-  ["CE", "9215", "8159025", "LEONARDO SILVA BRITO", "BRITO"],
-  ["CE", "9764", "8480036", "DAVID SANTOS RUIZ", "RUIZ"],
-  ["CE", "9734", "8487316", "WELLINGTON DOS SANTOS DE SOUZA", "WELLINGTON"],
-  ["GCM 2ª", "10327", "9166335", "GLAUCE REBERTE DA SILVA", "REBERTE"],
-  ["GCM 2ª", "10492", "9168150", "VITOR OLIVEIRA MARINHO", "MARINHO"],
-  ["GCM 2ª", "10784", "9171398", "GABRIEL ALEXANDRO DE MENEZES COELHO", "COELHO"],
-  ["GCM 2ª", "11070", "9174508", "ANTONIO CESAR ABASCAL INFANTES CAMARA", "INFANTES"],
-  ["GCM 2ª", "11170", "9175610", "RENATA VRECH", "RENATA"],
-  ["GCM 3ª", "11330", "9275037", "YURI ODILON DIAS DA SILVA", "ODILON"],
-  ["GCM 3ª", "11667", "9276688", "VICTOR ROBAINA DE AZEVEDO", "ROBAINA"],
-  ["GCM 3ª", "11347", "9303600", "DIAN SENAS VIEIRA", "DIAN"],
-  ["GCM 3ª", "11997", "9421262", "KAMILA FREIRES DE OLIVEIRA MENDES", "KAMILA MENDES"]
+  ["ID", "", "6464203", "RICHARD SOARES MARIANO", "RICHARD"],
+  ["SUBINSPETOR", "", "6486061", "FLAVIO GOMES DA SILVA", "FLAVIO"],
+  ["SUBINSPETOR", "", "6746578", "RITA DE CASSIA GOMES HELENO", "RITA"],
+  ["SUBINSPETOR", "", "6807526", "VINICIUS LIMA FONSECA", "VINICIUS"],
+  ["CE", "", "7563345", "PAULO ROBERTO OLIVEIRA MENDES", "MENDES"],
+  ["CE", "", "7722524", "ANSELMO DOS SANTOS FERNANDES", "ANSELMO"],
+  ["GCM 3ª", "", "9276688", "DIAN SENAS VIEIRA", "DIAN"]
 ];
 
 function criarSenha(senha) {
@@ -87,10 +72,19 @@ db.exec(`
   );
 `);
 
+const rfsAutorizados = servidores.map(servidor => servidor[2]);
+const placeholders = rfsAutorizados.map(() => "?").join(", ");
+db.prepare(`DELETE FROM servidores WHERE rf NOT IN (${placeholders})`).run(...rfsAutorizados);
+
 const inserirServidor = db.prepare(`
-  INSERT OR IGNORE INTO servidores
+  INSERT INTO servidores
     (graduacao, distintivo, rf, nome, nome_guerra, senha_hash)
   VALUES (?, ?, ?, ?, ?, ?)
+  ON CONFLICT(rf) DO UPDATE SET
+    graduacao = excluded.graduacao,
+    distintivo = excluded.distintivo,
+    nome = excluded.nome,
+    nome_guerra = excluded.nome_guerra
 `);
 
 for (const servidor of servidores) {
