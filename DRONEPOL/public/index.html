@@ -476,6 +476,15 @@
 
         </button>
 
+        <button
+          id="focusCamera"
+          class="secondary"
+          disabled>
+
+          Focar agora
+
+        </button>
+
       </div>
 
     </section>
@@ -835,6 +844,71 @@ async function applyCameraZoom() {
 
     toast(
       "Este celular não permite zoom pelo navegador. Aproxime a câmera do QR Code."
+    );
+
+  }
+
+}
+
+
+// ============================================
+// FOCAR CÂMERA MANUALMENTE
+// ============================================
+
+async function focusCamera() {
+
+  if (!scanner || !scanning) {
+
+    return;
+
+  }
+
+  try {
+
+    const capabilities =
+      scanner.getRunningTrackCapabilities();
+
+    const focusModes =
+      capabilities.focusMode || [];
+
+    if (!focusModes.length) {
+
+      throw new Error("Foco não disponível");
+
+    }
+
+    if (focusModes.includes("single-shot")) {
+
+      await scanner.applyVideoConstraints({
+        advanced: [
+          {
+            focusMode: "single-shot"
+          }
+        ]
+      });
+
+    }
+
+    if (focusModes.includes("continuous")) {
+
+      await scanner.applyVideoConstraints({
+        advanced: [
+          {
+            focusMode: "continuous"
+          }
+        ]
+      });
+
+    }
+
+    toast("Foco da câmera ajustado.");
+
+  } catch (error) {
+
+    console.warn("Foco manual não suportado por esta câmera.", error);
+
+    toast(
+      "Este celular não permite foco manual no navegador."
     );
 
   }
@@ -1513,6 +1587,10 @@ document
             "cameraZoom"
           ).disabled = true;
 
+          document.getElementById(
+            "focusCamera"
+          ).disabled = true;
+
         },
 
         () => {}
@@ -1526,23 +1604,13 @@ document
         "cameraZoom"
       ).disabled = false;
 
+      document.getElementById(
+        "focusCamera"
+      ).disabled = false;
+
       await applyCameraZoom();
 
-      try {
-
-        await scanner.applyVideoConstraints({
-          advanced: [
-            {
-              focusMode: "continuous"
-            }
-          ]
-        });
-
-      } catch (error) {
-
-        console.warn("Foco contínuo não suportado por esta câmera.", error);
-
-      }
+      await focusCamera();
 
 
       toast(
@@ -1597,6 +1665,10 @@ document
         "cameraZoom"
       ).disabled = true;
 
+      document.getElementById(
+        "focusCamera"
+      ).disabled = true;
+
 
       toast(
         "Câmera parada."
@@ -1605,6 +1677,13 @@ document
     }
 
   };
+
+
+document
+  .getElementById(
+    "focusCamera"
+  )
+  .onclick = focusCamera;
 
 
 // ============================================
