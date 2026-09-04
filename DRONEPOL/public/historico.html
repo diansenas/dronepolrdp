@@ -54,7 +54,8 @@
         <div class="info"><small>Bateria</small><strong>${escapeHtml(record.numero_serie || "Bateria excluída")}</strong></div>
         <div class="info"><small>Operador responsável</small><strong>${escapeHtml(record.operador)}</strong></div>
         <div class="info"><small>Data e hora</small><strong>${escapeHtml(record.created_at)}</strong></div>
-        <div class="info"><small>O que foi feito</small><div>${escapeHtml(record.detalhes) || "Nenhum detalhe informado."}</div></div>
+        <div class="info"><small>O que foi realizado</small><div>${escapeHtml(record.detalhes) || "Nenhum detalhe informado."}</div></div>
+        <div class="info"><small>Observação</small><div>${escapeHtml(record.observacao) || "Nenhuma observação informada."}</div></div>
       `;
     }
 

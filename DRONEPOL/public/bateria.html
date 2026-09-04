@@ -33,7 +33,7 @@
     input, select, textarea { width: 100%; padding: 12px; border: 1px solid #d0d5dd; border-radius: 10px; font-size: 15px; }
     textarea { min-height: 90px; resize: vertical; }
     .form-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0 14px; }
-    .history-item { border-left: 3px solid #111827; padding: 4px 0 12px 14px; margin: 0 0 14px 5px; }
+    .history-item { display: block; border-left: 3px solid #111827; padding: 4px 0 12px 14px; margin: 0 0 14px 5px; color: inherit; text-decoration: none; }
     .history-item strong { display: block; }
     .muted { color: #667085; }
     .toast { position: fixed; right: 20px; bottom: 20px; background: #111827; color: white; padding: 14px 18px; border-radius: 10px; }
@@ -152,6 +152,7 @@
         <a class="history-item" href="/historico.html?id=${item.id}">
           <strong>${escapeHtml(item.acao)}</strong>
           <span>${escapeHtml(item.detalhes)}</span>
+          <div class="muted">Observação: ${escapeHtml(item.observacao) || "Não informada"}</div>
           <div class="muted">${escapeHtml(item.operador)} | ${escapeHtml(item.created_at)}</div>
         </a>
       `).join("") : "<p class=\"muted\">Nenhuma alteração registrada ainda.</p>";

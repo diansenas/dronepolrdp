@@ -36,12 +36,28 @@ db.exec(`
   );
 `);
 
-function registrarHistorico(bateriaId, acao, operador, detalhes = "") {
+const colunasHistorico = db
+  .prepare("PRAGMA table_info(historico_baterias)")
+  .all();
+
+if (!colunasHistorico.some(coluna => coluna.name === "observacao")) {
+  db.exec(
+    "ALTER TABLE historico_baterias ADD COLUMN observacao TEXT NOT NULL DEFAULT ''"
+  );
+}
+
+function registrarHistorico(
+  bateriaId,
+  acao,
+  operador,
+  detalhes = "",
+  observacao = ""
+) {
   db.prepare(`
     INSERT INTO historico_baterias
-      (bateria_id, acao, operador, detalhes)
-    VALUES (?, ?, ?, ?)
-  `).run(bateriaId, acao, operador, detalhes);
+      (bateria_id, acao, operador, detalhes, observacao)
+    VALUES (?, ?, ?, ?, ?)
+  `).run(bateriaId, acao, operador, detalhes, observacao);
 }
 
 // Inserir bateria de teste na primeira execução
@@ -144,7 +160,7 @@ app.get("/api/baterias/:id/historico", (req, res) => {
 
   const historico = db
     .prepare(`
-      SELECT id, bateria_id, acao, operador, detalhes, created_at
+      SELECT id, bateria_id, acao, operador, detalhes, observacao, created_at
       FROM historico_baterias
       WHERE bateria_id = ?
       ORDER BY id DESC
@@ -247,7 +263,8 @@ app.post("/api/baterias", (req, res) => {
       bateria.id,
       "Cadastro",
       nomeOperador,
-      "Bateria cadastrada"
+      "Bateria cadastrada",
+      observacoes
     );
 
     res.status(201).json(bateria);
@@ -333,7 +350,8 @@ app.put("/api/baterias/:id", (req, res) => {
     bateria.id,
     "Edição",
     nomeOperador,
-    "Dados da bateria atualizados"
+    "Dados da bateria atualizados",
+    observacoes
   );
 
   res.json(bateria);
