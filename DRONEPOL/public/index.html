@@ -438,6 +438,19 @@
 
       <div id="reader"></div>
 
+      <label for="cameraZoom">
+        Zoom da câmera
+      </label>
+
+      <input
+        id="cameraZoom"
+        type="range"
+        min="1"
+        max="4"
+        step="0.1"
+        value="2"
+        disabled>
+
       <div
         id="scanResult"
         class="result hidden">
@@ -765,6 +778,8 @@ let scanner = null;
 
 let scanning = false;
 
+let cameraZoom = 2;
+
 
 // ============================================
 // FUNÇÃO TOAST
@@ -784,6 +799,38 @@ function toast(message) {
     element.classList.add("hidden");
 
   }, 2500);
+
+}
+
+
+// ============================================
+// AJUSTAR ZOOM DA CÂMERA
+// ============================================
+
+async function applyCameraZoom() {
+
+  if (!scanner || !scanning) {
+
+    return;
+
+  }
+
+  try {
+
+    await scanner.applyVideoConstraints({
+      advanced: [
+        {
+          zoom: cameraZoom,
+          focusMode: "continuous"
+        }
+      ]
+    });
+
+  } catch (error) {
+
+    console.warn("Zoom não suportado por esta câmera.", error);
+
+  }
 
 }
 
@@ -1404,9 +1451,21 @@ document
         {
           fps: 10,
 
+          videoConstraints: {
+            facingMode: {
+              ideal: "environment"
+            },
+            width: {
+              ideal: 1920
+            },
+            height: {
+              ideal: 1080
+            }
+          },
+
           qrbox: {
-            width: 240,
-            height: 240
+            width: 300,
+            height: 300
           }
 
         },
@@ -1440,6 +1499,10 @@ document
 
           scanning = false;
 
+          document.getElementById(
+            "cameraZoom"
+          ).disabled = true;
+
         },
 
         () => {}
@@ -1448,6 +1511,12 @@ document
 
 
       scanning = true;
+
+      document.getElementById(
+        "cameraZoom"
+      ).disabled = false;
+
+      await applyCameraZoom();
 
 
       toast(
@@ -1498,6 +1567,10 @@ document
 
       scanning = false;
 
+      document.getElementById(
+        "cameraZoom"
+      ).disabled = true;
+
 
       toast(
         "Câmera parada."
@@ -1506,6 +1579,26 @@ document
     }
 
   };
+
+
+// ============================================
+// CONTROLE DE ZOOM
+// ============================================
+
+document
+  .getElementById(
+    "cameraZoom"
+  )
+  .addEventListener(
+    "input",
+    event => {
+
+      cameraZoom = Number(event.target.value);
+
+      applyCameraZoom();
+
+    }
+  );
 
 
 // ============================================
