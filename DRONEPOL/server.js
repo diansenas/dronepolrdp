@@ -1,5 +1,6 @@
 const express = require("express");
 const path = require("path");
+const os = require("os");
 const Database = require("better-sqlite3");
 
 const app = express();
@@ -260,7 +261,13 @@ app.delete("/api/baterias/:id", (req, res) => {
 // INICIAR SERVIDOR
 // ============================================
 
-app.listen(PORT, () => {
+app.listen(PORT, "0.0.0.0", () => {
+  const interfaces = os.networkInterfaces();
+  const addresses = Object.values(interfaces)
+    .flat()
+    .filter(address => address && address.family === "IPv4" && !address.internal)
+    .map(address => `http://${address.address}:${PORT}`);
+
   console.log(`
 ========================================
    DRONEPOL - CONTROLE DE BATERIAS
@@ -269,6 +276,8 @@ app.listen(PORT, () => {
 Servidor rodando em:
 
 http://localhost:${PORT}
+
+${addresses.length ? `Acesso pela rede:\n${addresses.join("\n")}` : ""}
 
 ========================================
   `);

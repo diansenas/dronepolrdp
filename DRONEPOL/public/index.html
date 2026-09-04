@@ -818,13 +818,25 @@ function escapeHtml(value) {
 
 async function loadBatteries() {
 
-  const response =
-    await fetch("/api/baterias");
+  try {
 
-  batteries =
-    await response.json();
+    const response =
+      await fetch("/api/baterias");
 
-  renderTable();
+    if (!response.ok) {
+      throw new Error("Não foi possível carregar as baterias.");
+    }
+
+    batteries =
+      await response.json();
+
+    renderTable();
+
+  } catch (error) {
+
+    console.error(error);
+
+  }
 
 }
 
@@ -1801,6 +1813,11 @@ document
 // ============================================
 
 loadBatteries();
+
+setInterval(
+  loadBatteries,
+  5000
+);
 
 </script>
 
