@@ -567,16 +567,6 @@
         required
         placeholder="Número lido pelo QR Code">
 
-      <label>
-        Operador responsável
-      </label>
-
-      <input
-        id="operador"
-        required
-        placeholder="Nome de quem está fazendo a alteração">
-
-
       <div class="grid">
 
         <div>
@@ -1859,14 +1849,6 @@ document
           ).value
             .trim()
 
-        ,
-
-        operador:
-          document.getElementById(
-            "operador"
-          ).value
-            .trim()
-
       };
 
 
@@ -1998,12 +1980,7 @@ document
 
             },
 
-            body: JSON.stringify({
-              operador:
-                document.getElementById(
-                  "operador"
-                ).value.trim()
-            })
+            body: JSON.stringify({})
           }
 
         );

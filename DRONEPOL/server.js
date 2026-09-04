@@ -398,8 +398,6 @@ app.post("/api/baterias", (req, res) => {
     drone = "",
     inspetoria = "",
     observacoes = ""
-    ,
-    operador = ""
   } = req.body;
 
   const serie = String(numero_serie || "")
@@ -485,8 +483,6 @@ app.put("/api/baterias/:id", (req, res) => {
     drone = "",
     inspetoria = "",
     observacoes = ""
-    ,
-    operador = ""
   } = req.body;
 
   const nomeOperador = nomeParaHistorico(req.usuario);

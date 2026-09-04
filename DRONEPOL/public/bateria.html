@@ -79,7 +79,6 @@
           <div><label for="status">Status</label><select id="status"><option>Disponível</option><option>Em uso</option><option>Manutenção</option><option>Bloqueada</option></select></div>
           <div><label for="drone">Drone atual</label><input id="drone"></div>
           <div><label for="inspetoria">Inspetoria atual</label><input id="inspetoria"></div>
-          <div><label for="operador">Operador responsável</label><input id="operador" required placeholder="Nome de quem fez a alteração"></div>
         </div>
         <label for="observacoes">Observações</label><textarea id="observacoes"></textarea>
         <div class="toolbar" style="margin-top:15px; margin-bottom:0">
@@ -169,26 +168,22 @@
           status: document.getElementById("status").value,
           drone: document.getElementById("drone").value.trim(),
           inspetoria: document.getElementById("inspetoria").value.trim(),
-          observacoes: document.getElementById("observacoes").value.trim(),
-          operador: document.getElementById("operador").value.trim()
+          observacoes: document.getElementById("observacoes").value.trim()
         })
       });
       const result = await response.json();
       if (!response.ok) return toast(result.error || "Erro ao salvar.");
       toast("Alteração registrada.");
-      document.getElementById("operador").value = "";
       showBattery(result);
       await loadHistory();
     });
 
     document.getElementById("deleteButton").onclick = async () => {
-      const operador = document.getElementById("operador").value.trim();
-      if (!operador) return toast("Informe o operador antes de excluir.");
       if (!confirm("Deseja realmente excluir esta bateria?")) return;
       const response = await fetch("/api/baterias/" + battery.id, {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ operador })
+        body: JSON.stringify({})
       });
       if (!response.ok) return toast("Erro ao excluir a bateria.");
       window.location.href = "/";
