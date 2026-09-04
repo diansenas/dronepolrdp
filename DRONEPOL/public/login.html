@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Acesso | DronePol</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; min-height: 100vh; display: grid; place-items: center; padding: 20px; background: #eef2f6; color: #17202a; font-family: Arial, Helvetica, sans-serif; }
+    main { width: min(100%, 430px); background: white; border: 1px solid #e4e7ec; border-radius: 14px; padding: 28px; box-shadow: 0 10px 30px rgba(0,0,0,.06); }
+    h1 { margin: 0; color: #111827; }
+    p { color: #667085; line-height: 1.5; }
+    label { display: block; margin: 16px 0 6px; font-size: 13px; font-weight: bold; }
+    input { width: 100%; padding: 13px; border: 1px solid #d0d5dd; border-radius: 9px; font-size: 18px; letter-spacing: 2px; }
+    button { width: 100%; margin-top: 20px; border: 0; border-radius: 9px; padding: 13px; background: #111827; color: white; font-weight: bold; cursor: pointer; }
+    .error { color: #b42318; min-height: 20px; }
+    .user { padding: 12px; background: #f2f4f7; border-radius: 9px; }
+    .hidden { display: none; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>DRONEPOL</h1>
+    <p>Acesso restrito aos servidores autorizados.</p>
+    <section id="loginBox">
+      <form id="loginForm">
+        <label for="rf">RF</label>
+        <input id="rf" inputmode="numeric" pattern="[0-9]{7}" maxlength="7" required>
+        <label for="senha">Senha de 4 dígitos</label>
+        <input id="senha" type="password" inputmode="numeric" pattern="[0-9]{4}" maxlength="4" required>
+        <button type="submit">Entrar</button>
+      </form>
+    </section>
+    <section id="changeBox" class="hidden">
+      <div id="userInfo" class="user"></div>
+      <p>Use a senha provisória 0000 apenas no primeiro acesso. Crie uma nova senha de 4 dígitos.</p>
+      <form id="changeForm">
+        <label for="novaSenha">Nova senha</label>
+        <input id="novaSenha" type="password" inputmode="numeric" pattern="[0-9]{4}" maxlength="4" required>
+        <label for="confirmaSenha">Confirme a nova senha</label>
+        <input id="confirmaSenha" type="password" inputmode="numeric" pattern="[0-9]{4}" maxlength="4" required>
+        <button type="submit">Trocar senha e entrar</button>
+      </form>
+    </section>
+    <p id="error" class="error"></p>
+  </main>
+  <script>
+    let usuario;
+    const errorElement = document.getElementById("error");
+    const showError = message => { errorElement.textContent = message; };
+
+    document.getElementById("loginForm").addEventListener("submit", async event => {
+      event.preventDefault();
+      showError("");
+      const response = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ rf: document.getElementById("rf").value, senha: document.getElementById("senha").value })
+      });
+      usuario = await response.json();
+      if (!response.ok) return showError(usuario.error || "Não foi possível entrar.");
+      if (usuario.deve_trocar_senha) {
+        document.getElementById("loginBox").classList.add("hidden");
+        document.getElementById("changeBox").classList.remove("hidden");
+        document.getElementById("userInfo").textContent = `${usuario.graduacao} ${usuario.nome_guerra} | RF ${usuario.rf}`;
+        return;
+      }
+      window.location.href = "/";
+    });
+
+    document.getElementById("changeForm").addEventListener("submit", async event => {
+      event.preventDefault();
+      const senha = document.getElementById("novaSenha").value;
+      if (senha !== document.getElementById("confirmaSenha").value) return showError("As senhas não são iguais.");
+      const response = await fetch("/api/auth/trocar-senha", {
+        method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ senha })
+      });
+      const result = await response.json();
+      if (!response.ok) return showError(result.error || "Não foi possível trocar a senha.");
+      window.location.href = "/";
+    });
+  </script>
+</body>
+</html>
