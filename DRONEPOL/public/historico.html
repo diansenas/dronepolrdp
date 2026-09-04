@@ -29,6 +29,7 @@
     <div>
       <div class="logo">DRONEPOL</div>
       <div class="subtitle">REGISTRO DE ALTERAÇÃO</div>
+      <button onclick="logout()">Sair</button>
     </div>
   </header>
   <main>
@@ -42,6 +43,11 @@
       return String(value ?? "").replace(/[&<>"']/g, character => ({
         "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;"
       }[character]));
+    }
+
+    async function logout() {
+      await fetch("/api/auth/logout", { method: "POST" });
+      window.location.href = "/login.html";
     }
 
     async function loadRecord() {

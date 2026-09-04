@@ -252,6 +252,25 @@ app.post("/api/auth/trocar-senha", (req, res) => {
   res.json({ ok: true });
 });
 
+app.post("/api/auth/logout", (req, res) => {
+  const token = req.headers.cookie
+    ?.split(";")
+    .map(cookie => cookie.trim())
+    .find(cookie => cookie.startsWith("dronepol_sessao="))
+    ?.split("=")[1];
+
+  if (token) {
+    sessoes.delete(token);
+  }
+
+  res.setHeader(
+    "Set-Cookie",
+    "dronepol_sessao=; HttpOnly; SameSite=Lax; Path=/; Max-Age=0"
+  );
+
+  res.json({ ok: true });
+});
+
 app.use((req, res, next) => {
   if (req.path === "/login.html" || req.path === "/api/auth/login") {
     return next();

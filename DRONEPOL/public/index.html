@@ -406,7 +406,13 @@
     </div>
 
     <div>
-      QR Code → Série → Banco
+      <button
+        class="secondary"
+        onclick="logout()">
+
+        Sair
+
+      </button>
     </div>
 
   </div>
@@ -807,6 +813,20 @@ function toast(message) {
     element.classList.add("hidden");
 
   }, 2500);
+
+}
+
+
+async function logout() {
+
+  await fetch(
+    "/api/auth/logout",
+    {
+      method: "POST"
+    }
+  );
+
+  window.location.href = "/login.html";
 
 }
 
