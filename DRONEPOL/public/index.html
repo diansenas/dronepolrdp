@@ -383,6 +383,32 @@
 
     }
 
+    @media print {
+
+      .no-print,
+      header button,
+      main > .grid,
+      main > section:not(#batteryList) {
+        display: none !important;
+      }
+
+      body {
+        background: white;
+      }
+
+      main {
+        max-width: none;
+        margin: 0;
+      }
+
+      #batteryList {
+        display: block !important;
+        border: 0;
+        box-shadow: none;
+      }
+
+    }
+
   </style>
 
 </head>
@@ -541,6 +567,7 @@
   <!-- ============================== -->
 
   <section
+    id="batteryList"
     class="card"
     style="margin-top:20px;">
 
@@ -723,9 +750,17 @@
       📋 Baterias cadastradas
     </h2>
 
+    <button
+      class="secondary no-print"
+      onclick="window.print()">
+
+      Imprimir lista
+
+    </button>
+
     <input
       id="tableSearch"
-      class="search"
+      class="search no-print"
       placeholder="Pesquisar bateria...">
 
     <div style="overflow:auto;">
