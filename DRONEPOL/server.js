@@ -154,6 +154,27 @@ app.get("/api/baterias/:id/historico", (req, res) => {
   res.json(historico);
 });
 
+app.get("/api/historico/:id", (req, res) => {
+  const id = Number(req.params.id);
+
+  const registro = db
+    .prepare(`
+      SELECT historico_baterias.*, baterias.numero_serie
+      FROM historico_baterias
+      LEFT JOIN baterias ON baterias.id = historico_baterias.bateria_id
+      WHERE historico_baterias.id = ?
+    `)
+    .get(id);
+
+  if (!registro) {
+    return res.status(404).json({
+      error: "Registro do histórico não encontrado."
+    });
+  }
+
+  res.json(registro);
+});
+
 // ============================================
 // CADASTRAR BATERIA
 // ============================================

@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Registro do histórico | DronePol</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: Arial, Helvetica, sans-serif; background: #f4f6f8; color: #17202a; }
+    header { background: #111827; color: white; padding: 20px; }
+    header div { max-width: 1100px; margin: auto; }
+    main { max-width: 760px; margin: auto; padding: 25px 15px 40px; }
+    .logo { font-size: 22px; font-weight: bold; }
+    .subtitle { margin-top: 4px; font-size: 12px; opacity: .7; }
+    .card { background: white; border: 1px solid #e4e7ec; border-radius: 12px; padding: 22px; }
+    .info { border-bottom: 1px solid #e4e7ec; padding: 16px 0; }
+    .info:first-child { padding-top: 0; }
+    .info:last-child { border-bottom: 0; }
+    .info small { display: block; color: #667085; margin-bottom: 7px; }
+    .action { font-size: 25px; font-weight: bold; }
+    .muted { color: #667085; }
+    button { border: 0; border-radius: 10px; padding: 12px 16px; font-weight: bold; cursor: pointer; background: #e9eef3; color: #111827; }
+    .toolbar { margin-bottom: 20px; }
+    .error { color: #b42318; }
+  </style>
+</head>
+<body>
+  <header>
+    <div>
+      <div class="logo">DRONEPOL</div>
+      <div class="subtitle">REGISTRO DE ALTERAÇÃO</div>
+    </div>
+  </header>
+  <main>
+    <div class="toolbar"><button onclick="history.back()">Voltar</button></div>
+    <section class="card" id="content"><p class="muted">Carregando registro...</p></section>
+  </main>
+  <script>
+    const recordId = new URLSearchParams(window.location.search).get("id");
+
+    function escapeHtml(value) {
+      return String(value ?? "").replace(/[&<>"']/g, character => ({
+        "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;"
+      }[character]));
+    }
+
+    async function loadRecord() {
+      if (!recordId) throw new Error("ID do registro ausente.");
+      const response = await fetch("/api/historico/" + encodeURIComponent(recordId));
+      const record = await response.json();
+      if (!response.ok) throw new Error(record.error || "Registro não encontrado.");
+      document.getElementById("content").innerHTML = `
+        <div class="info"><small>Ação realizada</small><div class="action">${escapeHtml(record.acao)}</div></div>
+        <div class="info"><small>Bateria</small><strong>${escapeHtml(record.numero_serie || "Bateria excluída")}</strong></div>
+        <div class="info"><small>Operador responsável</small><strong>${escapeHtml(record.operador)}</strong></div>
+        <div class="info"><small>Data e hora</small><strong>${escapeHtml(record.created_at)}</strong></div>
+        <div class="info"><small>O que foi feito</small><div>${escapeHtml(record.detalhes) || "Nenhum detalhe informado."}</div></div>
+      `;
+    }
+
+    loadRecord().catch(error => {
+      document.getElementById("content").innerHTML = `<h2 class="error">Não foi possível carregar o registro</h2><p>${escapeHtml(error.message)}</p>`;
+    });
+  </script>
+</body>
+</html>

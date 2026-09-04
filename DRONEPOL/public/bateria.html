@@ -149,11 +149,11 @@
       const history = await response.json();
       const element = document.getElementById("history");
       element.innerHTML = history.length ? history.map(item => `
-        <div class="history-item">
+        <a class="history-item" href="/historico.html?id=${item.id}">
           <strong>${escapeHtml(item.acao)}</strong>
           <span>${escapeHtml(item.detalhes)}</span>
           <div class="muted">${escapeHtml(item.operador)} | ${escapeHtml(item.created_at)}</div>
-        </div>
+        </a>
       `).join("") : "<p class=\"muted\">Nenhuma alteração registrada ainda.</p>";
     }
 
