@@ -464,7 +464,8 @@
       <p class="muted">
 
         Aponte a câmera para o
-        QR Code da bateria.
+        QR Code da bateria. Toque na imagem
+        para tentar focar novamente.
 
       </p>
 
@@ -1597,9 +1598,11 @@ document
             height: {
               ideal: 1080
             },
-            focusMode: {
-              ideal: "continuous"
-            }
+            advanced: [
+              {
+                focusMode: "continuous"
+              }
+            ]
           },
 
           qrbox: {
@@ -1666,6 +1669,20 @@ document
       await applyCameraZoom();
 
       await focusCamera();
+
+      const video =
+        document.querySelector(
+          "#reader video"
+        );
+
+      if (video) {
+
+        video.addEventListener(
+          "click",
+          focusCamera
+        );
+
+      }
 
 
       toast(
