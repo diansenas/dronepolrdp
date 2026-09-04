@@ -567,6 +567,15 @@
         required
         placeholder="Número lido pelo QR Code">
 
+      <label>
+        Operador responsável
+      </label>
+
+      <input
+        id="operador"
+        required
+        placeholder="Nome de quem está fazendo a alteração">
+
 
       <div class="grid">
 
@@ -1085,7 +1094,8 @@ function renderTable() {
 
           if (bateria) {
 
-            fillForm(bateria);
+            window.location.href =
+              "/bateria.html?id=" + bateria.id;
 
           }
 
@@ -1849,6 +1859,14 @@ document
           ).value
             .trim()
 
+        ,
+
+        operador:
+          document.getElementById(
+            "operador"
+          ).value
+            .trim()
+
       };
 
 
@@ -1971,7 +1989,21 @@ document
 
           {
             method:
-              "DELETE"
+              "DELETE",
+
+            headers: {
+
+              "Content-Type":
+                "application/json"
+
+            },
+
+            body: JSON.stringify({
+              operador:
+                document.getElementById(
+                  "operador"
+                ).value.trim()
+            })
           }
 
         );

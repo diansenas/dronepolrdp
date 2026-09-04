@@ -25,7 +25,24 @@ db.exec(`
     created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
   );
+
+  CREATE TABLE IF NOT EXISTS historico_baterias (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    bateria_id INTEGER NOT NULL,
+    acao TEXT NOT NULL,
+    operador TEXT NOT NULL,
+    detalhes TEXT NOT NULL DEFAULT '',
+    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+  );
 `);
+
+function registrarHistorico(bateriaId, acao, operador, detalhes = "") {
+  db.prepare(`
+    INSERT INTO historico_baterias
+      (bateria_id, acao, operador, detalhes)
+    VALUES (?, ?, ?, ?)
+  `).run(bateriaId, acao, operador, detalhes);
+}
 
 // Inserir bateria de teste na primeira execução
 const quantidade = db
@@ -102,6 +119,41 @@ app.get("/api/baterias/:serie", (req, res) => {
   res.json(bateria);
 });
 
+app.get("/api/baterias/id/:id", (req, res) => {
+  const id = Number(req.params.id);
+
+  const bateria = db
+    .prepare("SELECT * FROM baterias WHERE id = ?")
+    .get(id);
+
+  if (!bateria) {
+    return res.status(404).json({
+      error: "Bateria não encontrada."
+    });
+  }
+
+  res.json(bateria);
+});
+
+// ============================================
+// CONSULTAR HISTÓRICO DA BATERIA
+// ============================================
+
+app.get("/api/baterias/:id/historico", (req, res) => {
+  const id = Number(req.params.id);
+
+  const historico = db
+    .prepare(`
+      SELECT id, bateria_id, acao, operador, detalhes, created_at
+      FROM historico_baterias
+      WHERE bateria_id = ?
+      ORDER BY id DESC
+    `)
+    .all(id);
+
+  res.json(historico);
+});
+
 // ============================================
 // CADASTRAR BATERIA
 // ============================================
@@ -115,6 +167,8 @@ app.post("/api/baterias", (req, res) => {
     drone = "",
     inspetoria = "",
     observacoes = ""
+    ,
+    operador = ""
   } = req.body;
 
   const serie = String(numero_serie || "")
@@ -124,6 +178,14 @@ app.post("/api/baterias", (req, res) => {
   if (!serie) {
     return res.status(400).json({
       error: "Número de série é obrigatório."
+    });
+  }
+
+  const nomeOperador = String(operador || "").trim();
+
+  if (!nomeOperador) {
+    return res.status(400).json({
+      error: "Nome do operador é obrigatório."
     });
   }
 
@@ -160,6 +222,13 @@ app.post("/api/baterias", (req, res) => {
       `)
       .get(resultado.lastInsertRowid);
 
+    registrarHistorico(
+      bateria.id,
+      "Cadastro",
+      nomeOperador,
+      "Bateria cadastrada"
+    );
+
     res.status(201).json(bateria);
 
   } catch (erro) {
@@ -190,7 +259,17 @@ app.put("/api/baterias/:id", (req, res) => {
     drone = "",
     inspetoria = "",
     observacoes = ""
+    ,
+    operador = ""
   } = req.body;
+
+  const nomeOperador = String(operador || "").trim();
+
+  if (!nomeOperador) {
+    return res.status(400).json({
+      error: "Nome do operador é obrigatório."
+    });
+  }
 
   const resultado = db
     .prepare(`
@@ -229,6 +308,13 @@ app.put("/api/baterias/:id", (req, res) => {
     `)
     .get(id);
 
+  registrarHistorico(
+    bateria.id,
+    "Edição",
+    nomeOperador,
+    "Dados da bateria atualizados"
+  );
+
   res.json(bateria);
 });
 
@@ -238,6 +324,13 @@ app.put("/api/baterias/:id", (req, res) => {
 
 app.delete("/api/baterias/:id", (req, res) => {
   const id = Number(req.params.id);
+  const nomeOperador = String(req.body?.operador || "").trim();
+
+  if (!nomeOperador) {
+    return res.status(400).json({
+      error: "Nome do operador é obrigatório."
+    });
+  }
 
   const resultado = db
     .prepare(`
@@ -251,6 +344,13 @@ app.delete("/api/baterias/:id", (req, res) => {
       error: "Bateria não encontrada."
     });
   }
+
+  registrarHistorico(
+    id,
+    "Exclusão",
+    nomeOperador,
+    "Bateria excluída"
+  );
 
   res.json({
     ok: true

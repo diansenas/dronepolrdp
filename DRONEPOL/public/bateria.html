@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Detalhes da bateria | DronePol</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: #f4f6f8;
+      color: #17202a;
+    }
+    header { background: #111827; color: white; padding: 20px; }
+    header .container, main { max-width: 1100px; margin: auto; }
+    .logo { font-size: 22px; font-weight: bold; }
+    .subtitle { margin-top: 4px; font-size: 12px; opacity: .7; }
+    main { padding: 25px 15px 40px; }
+    .toolbar { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 20px; }
+    button { border: 0; border-radius: 10px; padding: 12px 16px; font-weight: bold; cursor: pointer; }
+    .primary { background: #111827; color: white; }
+    .secondary { background: #e9eef3; color: #111827; }
+    .danger { background: #fee4e2; color: #b42318; }
+    .card { background: white; border: 1px solid #e4e7ec; border-radius: 12px; padding: 20px; margin-bottom: 20px; }
+    .hero { display: flex; justify-content: space-between; gap: 20px; align-items: flex-start; flex-wrap: wrap; }
+    .serial { font-family: monospace; font-size: clamp(22px, 5vw, 34px); font-weight: bold; word-break: break-all; }
+    .badge { display: inline-block; padding: 7px 11px; border-radius: 50px; background: #ecfdf3; color: #067647; font-size: 12px; font-weight: bold; }
+    .info-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-top: 20px; }
+    .info { border: 1px solid #e4e7ec; border-radius: 10px; padding: 13px; }
+    .info small { display: block; color: #667085; margin-bottom: 6px; }
+    label { display: block; font-size: 13px; font-weight: bold; margin: 14px 0 6px; }
+    input, select, textarea { width: 100%; padding: 12px; border: 1px solid #d0d5dd; border-radius: 10px; font-size: 15px; }
+    textarea { min-height: 90px; resize: vertical; }
+    .form-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0 14px; }
+    .history-item { border-left: 3px solid #111827; padding: 4px 0 12px 14px; margin: 0 0 14px 5px; }
+    .history-item strong { display: block; }
+    .muted { color: #667085; }
+    .toast { position: fixed; right: 20px; bottom: 20px; background: #111827; color: white; padding: 14px 18px; border-radius: 10px; }
+    .hidden { display: none !important; }
+    @media (max-width: 600px) { .info-grid, .form-grid { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="container">
+      <div class="logo">DRONEPOL</div>
+      <div class="subtitle">DETALHES E HISTÓRICO DA BATERIA</div>
+    </div>
+  </header>
+  <main>
+    <div class="toolbar">
+      <button class="secondary" onclick="window.location.href='/'">Voltar para baterias</button>
+    </div>
+    <section id="details" class="card hidden">
+      <div class="hero">
+        <div>
+          <div class="muted">Número de série</div>
+          <div id="serial" class="serial"></div>
+        </div>
+        <span id="statusBadge" class="badge"></span>
+      </div>
+      <div class="info-grid">
+        <div class="info"><small>Modelo</small><strong id="modeloInfo"></strong></div>
+        <div class="info"><small>Ciclos</small><strong id="ciclosInfo"></strong></div>
+        <div class="info"><small>Drone atual</small><strong id="droneInfo"></strong></div>
+        <div class="info"><small>Inspetoria atual</small><strong id="inspetoriaInfo"></strong></div>
+        <div class="info"><small>Cadastrada em</small><strong id="createdInfo"></strong></div>
+        <div class="info"><small>Atualizada em</small><strong id="updatedInfo"></strong></div>
+      </div>
+      <div class="info" style="margin-top:12px"><small>Observações</small><div id="observacoesInfo"></div></div>
+    </section>
+    <section id="editSection" class="card hidden">
+      <h2>Editar bateria</h2>
+      <form id="editForm">
+        <div class="form-grid">
+          <div><label for="modelo">Modelo</label><input id="modelo" required></div>
+          <div><label for="ciclos">Ciclos</label><input id="ciclos" type="number" min="0" required></div>
+          <div><label for="status">Status</label><select id="status"><option>Disponível</option><option>Em uso</option><option>Manutenção</option><option>Bloqueada</option></select></div>
+          <div><label for="drone">Drone atual</label><input id="drone"></div>
+          <div><label for="inspetoria">Inspetoria atual</label><input id="inspetoria"></div>
+          <div><label for="operador">Operador responsável</label><input id="operador" required placeholder="Nome de quem fez a alteração"></div>
+        </div>
+        <label for="observacoes">Observações</label><textarea id="observacoes"></textarea>
+        <div class="toolbar" style="margin-top:15px; margin-bottom:0">
+          <button class="primary" type="submit">Salvar alteração</button>
+          <button class="danger" type="button" id="deleteButton">Excluir bateria</button>
+        </div>
+      </form>
+    </section>
+    <section class="card">
+      <h2>Histórico de alterações</h2>
+      <div id="history"><p class="muted">Carregando histórico...</p></div>
+    </section>
+  </main>
+  <div id="toast" class="toast hidden"></div>
+  <script>
+    const batteryId = new URLSearchParams(window.location.search).get("id");
+    let battery;
+
+    function escapeHtml(value) {
+      return String(value ?? "").replace(/[&<>"']/g, character => ({
+        "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;"
+      }[character]));
+    }
+
+    function toast(message) {
+      const element = document.getElementById("toast");
+      element.textContent = message;
+      element.classList.remove("hidden");
+      setTimeout(() => element.classList.add("hidden"), 2500);
+    }
+
+    function setValue(id, value) {
+      document.getElementById(id).textContent = value || "Não informado";
+    }
+
+    function showBattery(data) {
+      battery = data;
+      document.getElementById("details").classList.remove("hidden");
+      document.getElementById("editSection").classList.remove("hidden");
+      setValue("serial", data.numero_serie);
+      setValue("statusBadge", data.status);
+      setValue("modeloInfo", data.modelo);
+      setValue("ciclosInfo", data.ciclos);
+      setValue("droneInfo", data.drone);
+      setValue("inspetoriaInfo", data.inspetoria);
+      setValue("createdInfo", data.created_at);
+      setValue("updatedInfo", data.updated_at);
+      setValue("observacoesInfo", data.observacoes);
+      document.getElementById("modelo").value = data.modelo;
+      document.getElementById("ciclos").value = data.ciclos;
+      document.getElementById("status").value = data.status;
+      document.getElementById("drone").value = data.drone || "";
+      document.getElementById("inspetoria").value = data.inspetoria || "";
+      document.getElementById("observacoes").value = data.observacoes || "";
+    }
+
+    async function loadBattery() {
+      if (!batteryId) throw new Error("ID da bateria ausente.");
+      const response = await fetch("/api/baterias/id/" + encodeURIComponent(batteryId));
+      if (!response.ok) throw new Error("Bateria não encontrada.");
+      showBattery(await response.json());
+      await loadHistory();
+    }
+
+    async function loadHistory() {
+      const response = await fetch("/api/baterias/" + encodeURIComponent(batteryId) + "/historico");
+      const history = await response.json();
+      const element = document.getElementById("history");
+      element.innerHTML = history.length ? history.map(item => `
+        <div class="history-item">
+          <strong>${escapeHtml(item.acao)}</strong>
+          <span>${escapeHtml(item.detalhes)}</span>
+          <div class="muted">${escapeHtml(item.operador)} | ${escapeHtml(item.created_at)}</div>
+        </div>
+      `).join("") : "<p class=\"muted\">Nenhuma alteração registrada ainda.</p>";
+    }
+
+    document.getElementById("editForm").addEventListener("submit", async event => {
+      event.preventDefault();
+      const response = await fetch("/api/baterias/" + battery.id, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          modelo: document.getElementById("modelo").value.trim(),
+          ciclos: Number(document.getElementById("ciclos").value) || 0,
+          status: document.getElementById("status").value,
+          drone: document.getElementById("drone").value.trim(),
+          inspetoria: document.getElementById("inspetoria").value.trim(),
+          observacoes: document.getElementById("observacoes").value.trim(),
+          operador: document.getElementById("operador").value.trim()
+        })
+      });
+      const result = await response.json();
+      if (!response.ok) return toast(result.error || "Erro ao salvar.");
+      toast("Alteração registrada.");
+      document.getElementById("operador").value = "";
+      showBattery(result);
+      await loadHistory();
+    });
+
+    document.getElementById("deleteButton").onclick = async () => {
+      const operador = document.getElementById("operador").value.trim();
+      if (!operador) return toast("Informe o operador antes de excluir.");
+      if (!confirm("Deseja realmente excluir esta bateria?")) return;
+      const response = await fetch("/api/baterias/" + battery.id, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ operador })
+      });
+      if (!response.ok) return toast("Erro ao excluir a bateria.");
+      window.location.href = "/";
+    };
+
+    loadBattery().catch(error => {
+      document.getElementById("details").classList.remove("hidden");
+      document.getElementById("details").innerHTML = "<h2>Não foi possível carregar a bateria</h2><p>" + escapeHtml(error.message) + "</p>";
+    });
+  </script>
+</body>
+</html>
