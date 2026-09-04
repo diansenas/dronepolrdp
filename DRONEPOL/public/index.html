@@ -2101,6 +2101,16 @@ document
       );
 
 
+      batteries = [
+        resultado,
+        ...batteries.filter(
+          bateria => bateria.id !== resultado.id
+        )
+      ];
+
+      renderTable();
+
+
       await loadBatteries();
 
     }
