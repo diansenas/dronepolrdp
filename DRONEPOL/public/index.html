@@ -820,15 +820,22 @@ async function applyCameraZoom() {
     await scanner.applyVideoConstraints({
       advanced: [
         {
-          zoom: cameraZoom,
-          focusMode: "continuous"
+          zoom: cameraZoom
         }
       ]
     });
 
+    toast(
+      `Zoom ajustado para ${cameraZoom.toFixed(1)}x.`
+    );
+
   } catch (error) {
 
     console.warn("Zoom não suportado por esta câmera.", error);
+
+    toast(
+      "Este celular não permite zoom pelo navegador. Aproxime a câmera do QR Code."
+    );
 
   }
 
@@ -1517,6 +1524,22 @@ document
       ).disabled = false;
 
       await applyCameraZoom();
+
+      try {
+
+        await scanner.applyVideoConstraints({
+          advanced: [
+            {
+              focusMode: "continuous"
+            }
+          ]
+        });
+
+      } catch (error) {
+
+        console.warn("Foco contínuo não suportado por esta câmera.", error);
+
+      }
 
 
       toast(
