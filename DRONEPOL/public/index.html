@@ -194,6 +194,8 @@
 
       font-size: 15px;
 
+      text-transform: uppercase;
+
     }
 
     textarea {
@@ -345,6 +347,134 @@
 
     }
 
+    .cycle-indicator {
+
+      --cycle-color: #067647;
+      --cycle-progress: 0deg;
+
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 46px;
+      height: 46px;
+      border-radius: 50%;
+      background: conic-gradient(
+        var(--cycle-color) var(--cycle-progress),
+        #e4e7ec var(--cycle-progress)
+      );
+      color: var(--cycle-color);
+      font-size: 11px;
+      font-weight: bold;
+      flex-shrink: 0;
+    }
+
+    .cycle-indicator::before {
+
+      content: "";
+      position: absolute;
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      background: white;
+
+    }
+
+    .cycle-indicator span {
+
+      position: relative;
+      z-index: 1;
+
+    }
+
+    .cycle-cell {
+
+      display: flex;
+      align-items: center;
+      gap: 8px;
+
+    }
+
+    .kit-modal {
+
+      position: fixed;
+      inset: 0;
+      z-index: 10;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      background: rgba(17, 24, 39, .65);
+
+    }
+
+    .kit-dialog {
+
+      width: min(760px, 100%);
+      max-height: 90vh;
+      overflow: auto;
+      background: white;
+      border-radius: 16px;
+      padding: 22px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, .2);
+
+    }
+
+    .kit-header {
+
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 15px;
+
+    }
+
+    .kit-section {
+
+      border: 1px solid #e4e7ec;
+      border-radius: 12px;
+      padding: 15px;
+      margin-top: 15px;
+
+    }
+
+    .kit-section h3 {
+
+      margin: 0 0 10px;
+
+    }
+
+    .kit-close {
+
+      font-size: 20px;
+      line-height: 1;
+      padding: 8px 11px;
+
+    }
+
+    .tabs {
+
+      display: flex;
+
+      gap: 8px;
+
+      margin: 20px 0 15px;
+
+    }
+
+    .tab-button.active {
+
+      background: #111827;
+
+      color: white;
+
+    }
+
+    .equipment-tab.hidden {
+
+      display: none;
+
+    }
+
     .toast {
 
       position: fixed;
@@ -426,7 +556,7 @@
       </div>
 
       <div class="subtitle">
-        CONTROLE DE BATERIAS • FASE 1 MVP
+        CONTROLE DE EQUIPAMENTOS • FASE 1 MVP
       </div>
 
     </div>
@@ -464,7 +594,7 @@
       <p class="muted">
 
         Aponte a câmera para o
-        QR Code da bateria. Toque na imagem
+        QR Code da bateria ou do drone. Toque na imagem
         para tentar focar novamente.
 
       </p>
@@ -546,12 +676,12 @@
     <section class="card">
 
       <h2>
-        🔎 Consultar bateria
+        🔎 Consultar equipamento
       </h2>
 
       <p class="muted">
 
-        Digite o número de série
+        Digite o número de série do equipamento
         ou use o leitor QR Code.
 
       </p>
@@ -589,15 +719,15 @@
     style="margin-top:20px;">
 
     <h2>
-      🔋 Cadastro de bateria
+      🔋 Cadastro de equipamento
     </h2>
 
     <p
       id="formMode"
       class="muted">
 
-      Cadastre uma nova bateria
-      ou carregue uma bateria existente.
+      Cadastre uma nova bateria ou drone
+      ou carregue um equipamento existente.
 
     </p>
 
@@ -617,6 +747,26 @@
         required
         placeholder="Número lido pelo QR Code">
 
+      <label for="tipo">
+        Tipo de equipamento
+      </label>
+
+      <select id="tipo">
+
+        <option value="BATERIA">
+          Bateria
+        </option>
+
+        <option value="DRONE">
+          Drone
+        </option>
+
+        <option value="RADIO">
+          Rádio controle
+        </option>
+
+      </select>
+
       <div class="grid">
 
         <div>
@@ -632,10 +782,10 @@
         </div>
 
 
-        <div>
+        <div id="ciclosField">
 
           <label>
-            Ciclos
+            CICLOS
           </label>
 
           <input
@@ -655,20 +805,20 @@
 
           <select id="status">
 
-            <option>
-              Disponível
+            <option value="DISPONÍVEL">
+              DISPONÍVEL
             </option>
 
-            <option>
-              Em uso
+            <option value="EM USO">
+              EM USO
             </option>
 
-            <option>
-              Manutenção
+            <option value="MANUTENÇÃO">
+              MANUTENÇÃO
             </option>
 
-            <option>
-              Bloqueada
+            <option value="BLOQUEADA">
+              BLOQUEADA
             </option>
 
           </select>
@@ -678,13 +828,26 @@
 
         <div>
 
-          <label>
-            Drone atual
+          <label for="drone" id="droneLabel">
+            DRONE
           </label>
 
           <input
             id="drone"
             placeholder="Ex.: M350-023">
+
+        </div>
+
+
+        <div>
+
+          <label for="prefixo">
+            PREFIXO
+          </label>
+
+          <input
+            id="prefixo"
+            placeholder="Ex.: DP-001">
 
         </div>
 
@@ -697,7 +860,7 @@
 
           <input
             id="inspetoria"
-            placeholder="Ex.: Campinas">
+            placeholder="Ex.: IR SÉ">
 
         </div>
 
@@ -726,7 +889,7 @@
           type="submit"
           class="primary">
 
-          Salvar bateria
+          Salvar equipamento
 
         </button>
 
@@ -756,7 +919,7 @@
 
 
   <!-- ============================== -->
-  <!-- LISTA DE BATERIAS -->
+  <!-- LISTA DE EQUIPAMENTOS -->
   <!-- ============================== -->
 
   <section
@@ -764,7 +927,7 @@
     style="margin-top:20px;">
 
     <h2>
-      📋 Baterias cadastradas
+      📋 Equipamentos cadastrados
     </h2>
 
     <button
@@ -778,7 +941,36 @@
     <input
       id="tableSearch"
       class="search no-print"
-      placeholder="Pesquisar bateria...">
+      placeholder="Pesquisar bateria ou drone...">
+
+    <div class="tabs no-print" role="tablist">
+
+      <button
+        type="button"
+        class="secondary tab-button active"
+        data-tab="baterias">
+        BATERIAS
+      </button>
+
+      <button
+        type="button"
+        class="secondary tab-button"
+        data-tab="drones">
+        DRONES
+      </button>
+
+      <button
+        type="button"
+        class="secondary tab-button"
+        data-tab="radios">
+        RÁDIO CONTROLE
+      </button>
+
+    </div>
+
+    <div id="bateriasTab" class="equipment-tab">
+
+      <h3>Baterias</h3>
 
     <div style="overflow:auto;">
 
@@ -805,11 +997,15 @@
             </th>
 
             <th>
-              Drone
+              DRONE
             </th>
 
             <th>
               Inspetoria
+            </th>
+
+            <th>
+              Prefixo
             </th>
 
           </tr>
@@ -824,6 +1020,62 @@
 
     </div>
 
+    </div>
+
+    <div id="dronesTab" class="equipment-tab hidden">
+
+      <h3>Drones</h3>
+
+    <div style="overflow:auto;">
+
+      <table>
+
+        <thead>
+
+          <tr>
+            <th>Número de série</th>
+            <th>Modelo</th>
+            <th>Status</th>
+            <th>Drone</th>
+            <th>Inspetoria</th>
+            <th>Prefixo</th>
+          </tr>
+
+        </thead>
+
+        <tbody id="droneTable"></tbody>
+
+      </table>
+
+    </div>
+
+    </div>
+
+    <div id="radiosTab" class="equipment-tab hidden">
+
+      <h3>Rádio controle</h3>
+
+      <div style="overflow:auto;">
+
+        <table>
+
+          <thead>
+            <tr>
+              <th>Número de série</th>
+              <th>Modelo do controle</th>
+              <th>DRONE BINDADO</th>
+              <th>Inspetoria</th>
+            </tr>
+          </thead>
+
+          <tbody id="radioTable"></tbody>
+
+        </table>
+
+      </div>
+
+    </div>
+
   </section>
 
 
@@ -833,6 +1085,25 @@
 <div
   id="toast"
   class="toast hidden">
+</div>
+
+<div id="kitModal" class="kit-modal hidden" role="dialog" aria-modal="true" aria-labelledby="kitTitle">
+
+  <div class="kit-dialog">
+
+    <div class="kit-header">
+      <div>
+        <h2 id="kitTitle">INFORMAÇÕES DO EQUIPAMENTO</h2>
+        <p id="kitSubtitle" class="muted"></p>
+      </div>
+
+      <button id="closeKit" class="secondary kit-close" type="button" aria-label="Fechar">&times;</button>
+    </div>
+
+    <div id="kitContent"></div>
+
+  </div>
+
 </div>
 
 
@@ -1012,6 +1283,105 @@ function escapeHtml(value) {
 
 }
 
+function cycleIndicator(cycles) {
+
+  const totalCycles = Math.max(0, Number(cycles) || 0);
+  const percentage = Math.min(100, Number((totalCycles / 2).toFixed(1)));
+  const color = totalCycles >= 151
+    ? "#b42318"
+    : totalCycles >= 100
+      ? "#b54708"
+      : "#067647";
+
+  return `
+    <span
+      class="cycle-indicator"
+      title="${totalCycles} de 200 ciclos (${percentage}%)"
+      style="--cycle-color:${color};--cycle-progress:${percentage * 3.6}deg;">
+      <span>${percentage}%</span>
+    </span>
+  `;
+}
+
+function kitSection(titulo, conteudo) {
+
+  return `
+    <section class="kit-section">
+      <h3>${titulo}</h3>
+      ${conteudo}
+    </section>
+  `;
+}
+
+function kitInfo(label, value) {
+
+  return `
+    <div class="info">
+      <small>${label}</small>
+      <strong>${escapeHtml(value || "NÃO INFORMADO")}</strong>
+    </div>
+  `;
+}
+
+async function showBatteryKit(equipamentoConsultado) {
+
+  if (!["BATERIA", "DRONE", "RADIO"].includes(equipamentoConsultado.tipo)) {
+    return;
+  }
+
+  const modal = document.getElementById("kitModal");
+  const content = document.getElementById("kitContent");
+
+  document.getElementById("kitSubtitle").textContent =
+    `${equipamentoConsultado.tipo} SN ${equipamentoConsultado.numero_serie}`;
+  modal.classList.remove("hidden");
+
+  const campos = [
+    kitInfo("TIPO", equipamentoConsultado.tipo),
+    kitInfo("NÚMERO DE SÉRIE", equipamentoConsultado.numero_serie),
+    kitInfo("MODELO", equipamentoConsultado.modelo),
+    kitInfo("STATUS", equipamentoConsultado.status),
+    equipamentoConsultado.tipo === "BATERIA"
+      ? kitInfo("CICLOS", `${equipamentoConsultado.ciclos} DE 200 (${Math.min(100, Number((equipamentoConsultado.ciclos / 2).toFixed(1)))}%)`)
+      : "",
+    equipamentoConsultado.tipo === "DRONE"
+      ? kitInfo("PREFIXO", equipamentoConsultado.prefixo)
+      : "",
+    equipamentoConsultado.tipo === "RADIO"
+      ? kitInfo("DRONE BINDADO", equipamentoConsultado.drone)
+      : kitInfo("DRONE", equipamentoConsultado.drone),
+    kitInfo("INSPETORIA", equipamentoConsultado.inspetoria),
+    kitInfo("OBSERVAÇÕES", equipamentoConsultado.observacoes)
+  ].join("");
+
+  content.innerHTML = kitSection("EQUIPAMENTO CONSULTADO", `<div class="info-grid">${campos}</div>`);
+}
+
+document.getElementById("closeKit").onclick = () => {
+  document.getElementById("kitModal").classList.add("hidden");
+};
+
+document.getElementById("kitModal").addEventListener("click", event => {
+  if (event.target.id === "kitModal") {
+    document.getElementById("kitModal").classList.add("hidden");
+  }
+});
+
+function selectEquipmentTab(tipo) {
+  const tabs = {
+    BATERIA: "baterias",
+    DRONE: "drones",
+    RADIO: "radios"
+  };
+
+  const tab = tabs[tipo] || "baterias";
+  const button = document.querySelector(`.tab-button[data-tab="${tab}"]`);
+
+  if (button) {
+    button.click();
+  }
+}
+
 
 // ============================================
 // CARREGAR BATERIAS
@@ -1062,6 +1432,7 @@ function renderTable() {
       return [
 
         bateria.numero_serie,
+        bateria.tipo,
         bateria.modelo,
         bateria.drone,
         bateria.inspetoria,
@@ -1075,12 +1446,8 @@ function renderTable() {
     });
 
 
-  const table =
-    document.getElementById("batteryTable");
-
-
-  table.innerHTML =
-    filtered.map(bateria => `
+  function renderRows(equipamentos, mostrarCiclos) {
+    return equipamentos.map(bateria => `
 
       <tr
         data-id="${bateria.id}"
@@ -1102,9 +1469,14 @@ function renderTable() {
           )}
         </td>
 
-        <td>
-          ${bateria.ciclos}
-        </td>
+        ${mostrarCiclos ? `
+          <td>
+            <div class="cycle-cell">
+              ${cycleIndicator(bateria.ciclos)}
+              <span>${bateria.ciclos} CICLOS</span>
+            </div>
+          </td>
+        ` : ""}
 
         <td>
 
@@ -1118,13 +1490,7 @@ function renderTable() {
 
         </td>
 
-        <td>
-
-          ${escapeHtml(
-            bateria.drone || "—"
-          )}
-
-        </td>
+        <td>${escapeHtml(bateria.drone || "—")}</td>
 
         <td>
 
@@ -1134,14 +1500,38 @@ function renderTable() {
 
         </td>
 
+        <td>${escapeHtml(bateria.prefixo || "—")}</td>
+
       </tr>
 
+    `).join("");
+  }
+
+  document.getElementById("batteryTable").innerHTML = renderRows(
+    filtered.filter(bateria => String(bateria.tipo || "BATERIA").trim().toUpperCase() === "BATERIA"),
+    true
+  );
+
+  document.getElementById("droneTable").innerHTML = renderRows(
+    filtered.filter(bateria => String(bateria.tipo || "").trim().toUpperCase() === "DRONE"),
+    false
+  );
+
+  document.getElementById("radioTable").innerHTML = filtered
+    .filter(equipamento => String(equipamento.tipo || "").trim().toUpperCase() === "RADIO")
+    .map(radio => `
+      <tr data-id="${radio.id}" style="cursor:pointer;">
+        <td><strong>${escapeHtml(radio.numero_serie)}</strong></td>
+        <td>${escapeHtml(radio.modelo)}</td>
+        <td>${escapeHtml(radio.drone || "—")}</td>
+        <td>${escapeHtml(radio.inspetoria || "—")}</td>
+      </tr>
     `).join("");
 
 
   document
     .querySelectorAll(
-      "#batteryTable tr[data-id]"
+      "#batteryTable tr[data-id], #droneTable tr[data-id], #radioTable tr[data-id]"
     )
     .forEach(row => {
 
@@ -1187,6 +1577,13 @@ function fillForm(bateria) {
   ).value =
     bateria.numero_serie;
 
+  document.getElementById(
+    "tipo"
+  ).value =
+    bateria.tipo || "BATERIA";
+
+  updateTypeFields();
+
 
   document.getElementById(
     "modelo"
@@ -1211,6 +1608,11 @@ function fillForm(bateria) {
   ).value =
     bateria.drone || "";
 
+  document.getElementById(
+    "prefixo"
+  ).value =
+    bateria.prefixo || "";
+
 
   document.getElementById(
     "inspetoria"
@@ -1227,7 +1629,7 @@ function fillForm(bateria) {
   document.getElementById(
     "formMode"
   ).textContent =
-    "Editando bateria #" +
+    "Editando equipamento #" +
     bateria.id;
 
 
@@ -1272,13 +1674,19 @@ function clearForm() {
   document.getElementById(
     "status"
   ).value =
-    "Disponível";
+    "DISPONÍVEL";
+
+  document.getElementById(
+    "tipo"
+  ).value = "BATERIA";
+
+  updateTypeFields();
 
 
   document.getElementById(
     "formMode"
   ).textContent =
-    "Cadastre uma nova bateria ou carregue uma existente.";
+    "Cadastre uma nova bateria ou drone ou carregue um equipamento existente.";
 
 
   document.getElementById(
@@ -1362,7 +1770,7 @@ function showLookup(bateria) {
         </div>
 
 
-        <div class="info">
+        <div class="info ${bateria.tipo === "BATERIA" ? "" : "hidden"}">
 
           <small>
             Ciclos
@@ -1370,7 +1778,10 @@ function showLookup(bateria) {
 
           <strong>
 
-            ${bateria.ciclos}
+            <div class="cycle-cell">
+              ${cycleIndicator(bateria.ciclos)}
+              <span>${bateria.ciclos} CICLOS</span>
+            </div>
 
           </strong>
 
@@ -1380,7 +1791,7 @@ function showLookup(bateria) {
         <div class="info">
 
           <small>
-            Drone atual
+            DRONE
           </small>
 
           <strong>
@@ -1388,6 +1799,24 @@ function showLookup(bateria) {
             ${escapeHtml(
               bateria.drone ||
               "Não vinculado"
+            )}
+
+          </strong>
+
+        </div>
+
+
+        <div class="info ${bateria.tipo === "RADIO" ? "hidden" : ""}">
+
+          <small>
+            PREFIXO
+          </small>
+
+          <strong>
+
+            ${escapeHtml(
+              bateria.prefixo ||
+              "Não informado"
             )}
 
           </strong>
@@ -1515,13 +1944,16 @@ async function lookupSerial(serial) {
     const bateria =
       await response.json();
 
+    selectEquipmentTab(bateria.tipo);
 
     showLookup(bateria);
+
+    showBatteryKit(bateria);
 
     fillForm(bateria);
 
     toast(
-      "Bateria encontrada."
+      `${bateria.tipo === "DRONE" ? "Drone" : bateria.tipo === "RADIO" ? "Rádio controle" : "Bateria"} encontrado.`
     );
 
 
@@ -1533,13 +1965,13 @@ async function lookupSerial(serial) {
 
       <div class="result">
 
-        ⚠️ Bateria
+        ⚠️ Equipamento
 
         <strong>
           ${escapeHtml(serial)}
         </strong>
 
-        não cadastrada.
+        não cadastrado.
 
       </div>
 
@@ -1558,11 +1990,11 @@ async function lookupSerial(serial) {
     document.getElementById(
       "formMode"
     ).textContent =
-      "Nova bateria encontrada pelo QR Code. Complete o cadastro.";
+      "Novo equipamento encontrado pelo QR Code. Escolha o tipo e complete o cadastro.";
 
 
     toast(
-      "QR lido. Bateria ainda não cadastrada."
+      "QR lido. Equipamento ainda não cadastrado."
     );
 
   }
@@ -1950,8 +2382,57 @@ document
   )
   .addEventListener(
     "input",
-    renderTable
+    event => {
+      renderTable();
+
+      const search = event.target.value.toLowerCase().trim();
+
+      if (!search) {
+        return;
+      }
+
+      const encontrado = batteries.find(equipamento => [
+        equipamento.numero_serie,
+        equipamento.tipo,
+        equipamento.modelo,
+        equipamento.drone,
+        equipamento.prefixo,
+        equipamento.inspetoria,
+        equipamento.status
+      ]
+        .join(" ")
+        .toLowerCase()
+        .includes(search));
+
+      if (encontrado) {
+        selectEquipmentTab(encontrado.tipo);
+      }
+    }
   );
+
+document
+  .querySelectorAll(".tab-button")
+  .forEach(button => {
+    button.addEventListener("click", () => {
+      const tab = button.dataset.tab;
+
+      document
+        .querySelectorAll(".tab-button")
+        .forEach(item => item.classList.toggle("active", item === button));
+
+      document
+        .getElementById("bateriasTab")
+        .classList.toggle("hidden", tab !== "baterias");
+
+      document
+        .getElementById("dronesTab")
+        .classList.toggle("hidden", tab !== "drones");
+
+      document
+        .getElementById("radiosTab")
+        .classList.toggle("hidden", tab !== "radios");
+    });
+  });
 
 
 // ============================================
@@ -1964,6 +2445,37 @@ document
   )
   .onclick =
     clearForm;
+
+document
+  .getElementById("tipo")
+  .addEventListener("change", event => {
+    const modelo = document.getElementById("modelo");
+
+    if (!document.getElementById("batteryId").value) {
+      modelo.value = event.target.value === "DRONE"
+        ? "DJI M350"
+        : event.target.value === "RADIO"
+          ? "DJI RC"
+          : "DJI TB65";
+    }
+
+    updateTypeFields();
+  });
+
+function updateTypeFields() {
+  const isDrone = document.getElementById("tipo").value === "DRONE";
+  const isBattery = document.getElementById("tipo").value === "BATERIA";
+  const isRadio = document.getElementById("tipo").value === "RADIO";
+  document.getElementById("ciclosField").classList.toggle("hidden", !isBattery);
+  document.getElementById("ciclos").disabled = !isBattery;
+  document.getElementById("prefixo").closest("div").classList.toggle("hidden", !isDrone);
+  document.getElementById("droneLabel").textContent = isRadio
+    ? "QUAL DRONE ESTÁ BINDADO"
+    : "DRONE";
+  document.getElementById("drone").placeholder = isRadio
+    ? "Ex.: M350-023"
+    : "Ex.: M350-023";
+}
 
 
 // ============================================
@@ -1996,6 +2508,11 @@ document
             .trim()
             .toUpperCase(),
 
+        tipo:
+          document.getElementById(
+            "tipo"
+          ).value,
+
         modelo:
           document.getElementById(
             "modelo"
@@ -2017,6 +2534,12 @@ document
         drone:
           document.getElementById(
             "drone"
+          ).value
+            .trim(),
+
+        prefixo:
+          document.getElementById(
+            "prefixo"
           ).value
             .trim(),
 
@@ -2085,8 +2608,8 @@ document
       toast(
 
         id
-          ? "Bateria atualizada."
-          : "Bateria cadastrada."
+          ? "Equipamento atualizado."
+          : "Equipamento cadastrado."
 
       );
 
@@ -2145,7 +2668,7 @@ document
 
       const confirmar =
         confirm(
-          "Deseja realmente excluir esta bateria?"
+          "Deseja realmente excluir este equipamento?"
         );
 
 
@@ -2191,7 +2714,7 @@ document
 
 
       toast(
-        "Bateria excluída."
+        "Equipamento excluído."
       );
 
 

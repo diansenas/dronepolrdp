@@ -40,10 +40,12 @@ db.exec(`
   CREATE TABLE IF NOT EXISTS baterias (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     numero_serie TEXT NOT NULL UNIQUE,
+    tipo TEXT NOT NULL DEFAULT 'BATERIA',
     modelo TEXT NOT NULL DEFAULT 'DJI TB65',
     ciclos INTEGER NOT NULL DEFAULT 0,
     status TEXT NOT NULL DEFAULT 'Disponível',
     drone TEXT DEFAULT '',
+    prefixo TEXT DEFAULT '',
     inspetoria TEXT DEFAULT '',
     observacoes TEXT DEFAULT '',
     created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -70,6 +72,35 @@ db.exec(`
     deve_trocar_senha INTEGER NOT NULL DEFAULT 1,
     ativo INTEGER NOT NULL DEFAULT 1
   );
+`);
+
+const colunasBaterias = db
+  .prepare("PRAGMA table_info(baterias)")
+  .all();
+
+if (!colunasBaterias.some(coluna => coluna.name === "tipo")) {
+  db.exec(
+    "ALTER TABLE baterias ADD COLUMN tipo TEXT NOT NULL DEFAULT 'BATERIA'"
+  );
+}
+
+if (!colunasBaterias.some(coluna => coluna.name === "prefixo")) {
+  db.exec(
+    "ALTER TABLE baterias ADD COLUMN prefixo TEXT DEFAULT ''"
+  );
+}
+
+db.exec(`
+  UPDATE baterias
+  SET
+    numero_serie = UPPER(numero_serie),
+    tipo = UPPER(tipo),
+    modelo = UPPER(modelo),
+    status = UPPER(status),
+    drone = UPPER(drone),
+    prefixo = UPPER(COALESCE(prefixo, '')),
+    inspetoria = UPPER(inspetoria),
+    observacoes = UPPER(observacoes)
 `);
 
 const rfsAutorizados = servidores.map(servidor => servidor[2]);
@@ -113,6 +144,58 @@ function registrarHistorico(
       (bateria_id, acao, operador, detalhes, observacao)
     VALUES (?, ?, ?, ?, ?)
   `).run(bateriaId, acao, operador, detalhes, observacao);
+}
+
+function valorHistorico(valor) {
+  return valor === null || valor === undefined || valor === ""
+    ? "NÃO INFORMADO"
+    : String(valor);
+}
+
+function descreverAlteracoes(anterior, atual) {
+  const campos = [
+    ["TIPO DE EQUIPAMENTO", "tipo"],
+    ["NÚMERO DE SÉRIE", "numero_serie"],
+    ["MODELO", "modelo"],
+    ["CICLOS DA BATERIA", "ciclos"],
+    ["NOME DO DRONE", "drone"],
+    ["PREFIXO", "prefixo"],
+    ["STATUS", "status"],
+    ["INSPETORIA", "inspetoria"],
+    ["OBSERVAÇÕES", "observacoes"]
+  ];
+
+  return campos
+    .filter(([, campo]) => {
+      if (campo === "ciclos" && atual.tipo !== "BATERIA") {
+        return false;
+      }
+
+      return !anterior || String(anterior[campo] ?? "") !== String(atual[campo] ?? "");
+    })
+    .map(([rotulo, campo]) => {
+      if (campo === "drone" && atual.tipo === "RADIO") {
+        const droneAtual = String(atual[campo] || "").trim();
+        const droneAnterior = String(anterior?.[campo] || "").trim();
+
+        if (droneAtual) {
+          return droneAnterior && droneAnterior !== droneAtual
+            ? `FOI BINDADO NO DRONE ${droneAtual} (ANTES: ${droneAnterior})`
+            : `FOI BINDADO NO DRONE ${droneAtual}`;
+        }
+
+        return `VÍNCULO COM DRONE REMOVIDO (ANTES: ${valorHistorico(droneAnterior)})`;
+      }
+
+      const rotuloAtual = campo === "drone" && atual.tipo === "RADIO"
+        ? "DRONE BINDADO"
+        : rotulo;
+
+      return anterior
+        ? `${rotuloAtual}: ${valorHistorico(anterior[campo])} -> ${valorHistorico(atual[campo])}`
+        : `${rotuloAtual}: ${valorHistorico(atual[campo])}`;
+    })
+    .join("\n") || "NENHUM CAMPO ALTERADO";
 }
 
 // Inserir bateria de teste na primeira execução
@@ -411,10 +494,12 @@ app.get("/api/historico/:id", (req, res) => {
 app.post("/api/baterias", (req, res) => {
   const {
     numero_serie,
+    tipo = "BATERIA",
     modelo = "DJI TB65",
     ciclos = 0,
     status = "Disponível",
     drone = "",
+    prefixo = "",
     inspetoria = "",
     observacoes = ""
   } = req.body;
@@ -422,10 +507,25 @@ app.post("/api/baterias", (req, res) => {
   const serie = String(numero_serie || "")
     .trim()
     .toUpperCase();
+  const tipoEquipamento = String(tipo).trim().toUpperCase();
+  const valores = {
+    modelo: String(modelo).trim().toUpperCase(),
+    status: String(status).trim().toUpperCase(),
+    drone: String(drone).trim().toUpperCase(),
+    prefixo: String(prefixo).trim().toUpperCase(),
+    inspetoria: String(inspetoria).trim().toUpperCase(),
+    observacoes: String(observacoes).trim().toUpperCase()
+  };
 
   if (!serie) {
     return res.status(400).json({
       error: "Número de série é obrigatório."
+    });
+  }
+
+  if (!["BATERIA", "DRONE", "RADIO"].includes(tipoEquipamento)) {
+    return res.status(400).json({
+      error: "Tipo de equipamento inválido. Escolha bateria ou drone."
     });
   }
 
@@ -437,23 +537,27 @@ app.post("/api/baterias", (req, res) => {
         INSERT INTO baterias
           (
             numero_serie,
+            tipo,
             modelo,
             ciclos,
             status,
             drone,
+            prefixo,
             inspetoria,
             observacoes
           )
-        VALUES (?, ?, ?, ?, ?, ?, ?)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
       `)
       .run(
         serie,
-        modelo,
+        tipoEquipamento,
+        valores.modelo,
         Number(ciclos) || 0,
-        status,
-        drone,
-        inspetoria,
-        observacoes
+        valores.status,
+        valores.drone,
+        valores.prefixo,
+        valores.inspetoria,
+        valores.observacoes
       );
 
     const bateria = db
@@ -468,8 +572,7 @@ app.post("/api/baterias", (req, res) => {
       bateria.id,
       "Cadastro",
       nomeOperador,
-      "Bateria cadastrada",
-      observacoes
+      `EQUIPAMENTO ADICIONADO EM ${bateria.created_at}`
     );
 
     res.status(201).json(bateria);
@@ -483,7 +586,7 @@ app.post("/api/baterias", (req, res) => {
     }
 
     res.status(500).json({
-      error: "Erro ao cadastrar bateria."
+      error: "Erro ao cadastrar equipamento."
     });
   }
 });
@@ -496,42 +599,74 @@ app.put("/api/baterias/:id", (req, res) => {
   const id = Number(req.params.id);
 
   const {
+    tipo = "BATERIA",
     modelo = "DJI TB65",
     ciclos = 0,
     status = "Disponível",
     drone = "",
+    prefixo = "",
     inspetoria = "",
     observacoes = ""
   } = req.body;
 
+  const tipoEquipamento = String(tipo).trim().toUpperCase();
+  const valores = {
+    modelo: String(modelo).trim().toUpperCase(),
+    status: String(status).trim().toUpperCase(),
+    drone: String(drone).trim().toUpperCase(),
+    prefixo: String(prefixo).trim().toUpperCase(),
+    inspetoria: String(inspetoria).trim().toUpperCase(),
+    observacoes: String(observacoes).trim().toUpperCase()
+  };
+
+  if (!["BATERIA", "DRONE", "RADIO"].includes(tipoEquipamento)) {
+    return res.status(400).json({
+      error: "Tipo de equipamento inválido. Escolha bateria ou drone."
+    });
+  }
+
   const nomeOperador = nomeParaHistorico(req.usuario);
+
+  const anterior = db
+    .prepare("SELECT * FROM baterias WHERE id = ?")
+    .get(id);
+
+  if (!anterior) {
+    return res.status(404).json({
+      error: "Equipamento não encontrado."
+    });
+  }
 
   const resultado = db
     .prepare(`
       UPDATE baterias
       SET
+        tipo = ?,
         modelo = ?,
         ciclos = ?,
         status = ?,
         drone = ?,
+        prefixo = ?,
         inspetoria = ?,
         observacoes = ?,
         updated_at = CURRENT_TIMESTAMP
       WHERE id = ?
     `)
     .run(
-      modelo,
+      tipoEquipamento,
+      valores.modelo,
       Number(ciclos) || 0,
-      status,
-      drone,
-      inspetoria,
-      observacoes,
+      valores.status,
+      valores.drone,
+      valores.prefixo,
+      valores.inspetoria,
+      valores.observacoes,
       id
     );
 
   if (!resultado.changes) {
     return res.status(404).json({
-      error: "Bateria não encontrada."
+      error: "Equipamento não encontrado."
     });
   }
 
@@ -547,8 +682,8 @@ app.put("/api/baterias/:id", (req, res) => {
     bateria.id,
     "Edição",
     nomeOperador,
-    "Dados da bateria atualizados",
-    observacoes
+    descreverAlteracoes(anterior, bateria),
+    valores.observacoes
   );
 
   res.json(bateria);
@@ -571,7 +706,7 @@ app.delete("/api/baterias/:id", (req, res) => {
 
   if (!resultado.changes) {
     return res.status(404).json({
-      error: "Bateria não encontrada."
+      error: "Equipamento não encontrado."
     });
   }
 
@@ -579,7 +714,7 @@ app.delete("/api/baterias/:id", (req, res) => {
     id,
     "Exclusão",
     nomeOperador,
-    "Bateria excluída"
+    "Equipamento excluído"
   );
 
   res.json({

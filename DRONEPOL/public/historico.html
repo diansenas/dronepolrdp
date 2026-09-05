@@ -19,6 +19,7 @@
     .info small { display: block; color: #667085; margin-bottom: 7px; }
     .action { font-size: 25px; font-weight: bold; }
     .muted { color: #667085; }
+    .changes { white-space: pre-line; }
     button { border: 0; border-radius: 10px; padding: 12px 16px; font-weight: bold; cursor: pointer; background: #e9eef3; color: #111827; }
     .toolbar { margin-bottom: 20px; }
     .error { color: #b42318; }
@@ -62,10 +63,10 @@
       if (!response.ok) throw new Error(record.error || "Registro não encontrado.");
       document.getElementById("content").innerHTML = `
         <div class="info"><small>Ação realizada</small><div class="action">${escapeHtml(record.acao)}</div></div>
-        <div class="info"><small>Bateria</small><strong>${escapeHtml(record.numero_serie || "Bateria excluída")}</strong></div>
+        <div class="info"><small>Equipamento</small><strong>${escapeHtml(record.numero_serie || "Equipamento excluído")}</strong></div>
         <div class="info"><small>Operador responsável</small><strong>${escapeHtml(record.operador)}</strong></div>
         <div class="info"><small>Data e hora</small><strong>${escapeHtml(record.created_at)}</strong></div>
-        <div class="info"><small>O que foi realizado</small><div>${escapeHtml(record.detalhes) || "Nenhum detalhe informado."}</div></div>
+        <div class="info"><small>O QUE FOI ALTERADO</small><div class="changes">${escapeHtml(record.detalhes) || "NENHUM CAMPO ALTERADO"}</div></div>
         <div class="info"><small>Observação</small><div>${escapeHtml(record.observacao) || "Nenhuma observação informada."}</div></div>
       `;
     }

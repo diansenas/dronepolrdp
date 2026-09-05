@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Detalhes da bateria | DronePol</title>
+  <title>Detalhes do equipamento | DronePol</title>
   <style>
     * { box-sizing: border-box; }
     body {
@@ -26,11 +26,15 @@
     .hero { display: flex; justify-content: space-between; gap: 20px; align-items: flex-start; flex-wrap: wrap; }
     .serial { font-family: monospace; font-size: clamp(22px, 5vw, 34px); font-weight: bold; word-break: break-all; }
     .badge { display: inline-block; padding: 7px 11px; border-radius: 50px; background: #ecfdf3; color: #067647; font-size: 12px; font-weight: bold; }
+    .cycle-indicator { --cycle-color: #067647; --cycle-progress: 0deg; display: inline-flex; align-items: center; justify-content: center; position: relative; width: 46px; height: 46px; border-radius: 50%; background: conic-gradient(var(--cycle-color) var(--cycle-progress), #e4e7ec var(--cycle-progress)); color: var(--cycle-color); font-size: 11px; font-weight: bold; flex-shrink: 0; }
+    .cycle-indicator::before { content: ""; position: absolute; width: 34px; height: 34px; border-radius: 50%; background: white; }
+    .cycle-indicator span { position: relative; z-index: 1; }
+    .cycle-cell { display: flex; align-items: center; gap: 8px; }
     .info-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-top: 20px; }
     .info { border: 1px solid #e4e7ec; border-radius: 10px; padding: 13px; }
     .info small { display: block; color: #667085; margin-bottom: 6px; }
     label { display: block; font-size: 13px; font-weight: bold; margin: 14px 0 6px; }
-    input, select, textarea { width: 100%; padding: 12px; border: 1px solid #d0d5dd; border-radius: 10px; font-size: 15px; }
+    input, select, textarea { width: 100%; padding: 12px; border: 1px solid #d0d5dd; border-radius: 10px; font-size: 15px; text-transform: uppercase; }
     textarea { min-height: 90px; resize: vertical; }
     .form-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0 14px; }
     .history-item { display: block; border-left: 3px solid #111827; padding: 4px 0 12px 14px; margin: 0 0 14px 5px; color: inherit; text-decoration: none; }
@@ -50,13 +54,13 @@
   <header>
     <div class="container">
       <div class="logo">DRONEPOL</div>
-      <div class="subtitle">DETALHES E HISTÓRICO DA BATERIA</div>
+      <div class="subtitle">DETALHES E HISTÓRICO DO EQUIPAMENTO</div>
       <button class="secondary no-print" onclick="logout()">Sair</button>
     </div>
   </header>
   <main>
     <div class="toolbar">
-      <button class="secondary" onclick="window.location.href='/'">Voltar para baterias</button>
+      <button class="secondary" onclick="window.location.href='/'">Voltar para equipamentos</button>
       <button class="secondary no-print" onclick="window.print()">Imprimir histórico</button>
     </div>
     <section id="details" class="card hidden">
@@ -68,9 +72,11 @@
         <span id="statusBadge" class="badge"></span>
       </div>
       <div class="info-grid">
+        <div class="info"><small>Tipo</small><strong id="tipoInfo"></strong></div>
         <div class="info"><small>Modelo</small><strong id="modeloInfo"></strong></div>
-        <div class="info"><small>Ciclos</small><strong id="ciclosInfo"></strong></div>
+        <div id="ciclosInfoField" class="info"><small>Ciclos</small><div id="ciclosInfo"></div></div>
         <div class="info"><small>Drone atual</small><strong id="droneInfo"></strong></div>
+        <div id="prefixoInfoField" class="info"><small>Prefixo</small><strong id="prefixoInfo"></strong></div>
         <div class="info"><small>Inspetoria atual</small><strong id="inspetoriaInfo"></strong></div>
         <div class="info"><small>Cadastrada em</small><strong id="createdInfo"></strong></div>
         <div class="info"><small>Atualizada em</small><strong id="updatedInfo"></strong></div>
@@ -78,19 +84,21 @@
       <div class="info" style="margin-top:12px"><small>Observações</small><div id="observacoesInfo"></div></div>
     </section>
     <section id="editSection" class="card hidden no-print">
-      <h2>Editar bateria</h2>
+      <h2>Editar equipamento</h2>
       <form id="editForm">
         <div class="form-grid">
+          <div><label for="tipo">TIPO DE EQUIPAMENTO</label><select id="tipo"><option value="BATERIA">BATERIA</option><option value="DRONE">DRONE</option><option value="RADIO">RÁDIO CONTROLE</option></select></div>
           <div><label for="modelo">Modelo</label><input id="modelo" required></div>
-          <div><label for="ciclos">Ciclos</label><input id="ciclos" type="number" min="0" required></div>
-          <div><label for="status">Status</label><select id="status"><option>Disponível</option><option>Em uso</option><option>Manutenção</option><option>Bloqueada</option></select></div>
-          <div><label for="drone">Drone atual</label><input id="drone"></div>
-          <div><label for="inspetoria">Inspetoria atual</label><input id="inspetoria"></div>
+          <div id="ciclosField"><label for="ciclos">CICLOS</label><input id="ciclos" type="number" min="0" required></div>
+          <div><label for="status">STATUS</label><select id="status"><option value="DISPONÍVEL">DISPONÍVEL</option><option value="EM USO">EM USO</option><option value="MANUTENÇÃO">MANUTENÇÃO</option><option value="BLOQUEADA">BLOQUEADA</option></select></div>
+          <div><label for="drone" id="droneLabel">DRONE</label><input id="drone"></div>
+          <div><label for="prefixo">PREFIXO</label><input id="prefixo"></div>
+          <div><label for="inspetoria">INSPETORIA ATUAL</label><input id="inspetoria" placeholder="EX.: IR SÉ"></div>
         </div>
         <label for="observacoes">Observações</label><textarea id="observacoes"></textarea>
         <div class="toolbar" style="margin-top:15px; margin-bottom:0">
           <button class="primary" type="submit">Salvar alteração</button>
-          <button class="danger" type="button" id="deleteButton">Excluir bateria</button>
+          <button class="danger" type="button" id="deleteButton">Excluir equipamento</button>
         </div>
       </form>
     </section>
@@ -126,31 +134,53 @@
       document.getElementById(id).textContent = value || "Não informado";
     }
 
+    function cycleIndicator(cycles) {
+      const totalCycles = Math.max(0, Number(cycles) || 0);
+      const percentage = Math.min(100, Number((totalCycles / 2).toFixed(1)));
+      const color = totalCycles >= 151
+        ? "#b42318"
+        : totalCycles >= 100
+          ? "#b54708"
+          : "#067647";
+
+      return `
+        <div class="cycle-cell">
+          <span class="cycle-indicator" title="${totalCycles} de 200 ciclos (${percentage}%)" style="--cycle-color:${color};--cycle-progress:${percentage * 3.6}deg;"><span>${percentage}%</span></span>
+          <span>${totalCycles} CICLOS</span>
+        </div>
+      `;
+    }
+
     function showBattery(data) {
       battery = data;
       document.getElementById("details").classList.remove("hidden");
       document.getElementById("editSection").classList.remove("hidden");
       setValue("serial", data.numero_serie);
+      setValue("tipoInfo", data.tipo === "DRONE" ? "Drone" : data.tipo === "RADIO" ? "Rádio controle" : "Bateria");
       setValue("statusBadge", data.status);
       setValue("modeloInfo", data.modelo);
-      setValue("ciclosInfo", data.ciclos);
+      document.getElementById("ciclosInfo").innerHTML = cycleIndicator(data.ciclos);
       setValue("droneInfo", data.drone);
+      setValue("prefixoInfo", data.prefixo);
       setValue("inspetoriaInfo", data.inspetoria);
       setValue("createdInfo", data.created_at);
       setValue("updatedInfo", data.updated_at);
       setValue("observacoesInfo", data.observacoes);
       document.getElementById("modelo").value = data.modelo;
+      document.getElementById("tipo").value = data.tipo || "BATERIA";
       document.getElementById("ciclos").value = data.ciclos;
+      updateTypeFields();
       document.getElementById("status").value = data.status;
       document.getElementById("drone").value = data.drone || "";
+      document.getElementById("prefixo").value = data.prefixo || "";
       document.getElementById("inspetoria").value = data.inspetoria || "";
       document.getElementById("observacoes").value = data.observacoes || "";
     }
 
     async function loadBattery() {
-      if (!batteryId) throw new Error("ID da bateria ausente.");
+      if (!batteryId) throw new Error("ID do equipamento ausente.");
       const response = await fetch("/api/baterias/id/" + encodeURIComponent(batteryId));
-      if (!response.ok) throw new Error("Bateria não encontrada.");
+      if (!response.ok) throw new Error("Equipamento não encontrado.");
       showBattery(await response.json());
       await loadHistory();
     }
@@ -175,10 +205,12 @@
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          tipo: document.getElementById("tipo").value,
           modelo: document.getElementById("modelo").value.trim(),
           ciclos: Number(document.getElementById("ciclos").value) || 0,
           status: document.getElementById("status").value,
           drone: document.getElementById("drone").value.trim(),
+          prefixo: document.getElementById("prefixo").value.trim(),
           inspetoria: document.getElementById("inspetoria").value.trim(),
           observacoes: document.getElementById("observacoes").value.trim()
         })
@@ -190,14 +222,28 @@
       await loadHistory();
     });
 
+    document.getElementById("tipo").addEventListener("change", updateTypeFields);
+
+    function updateTypeFields() {
+      const isDrone = document.getElementById("tipo").value === "DRONE";
+      const isBattery = document.getElementById("tipo").value === "BATERIA";
+      const isRadio = document.getElementById("tipo").value === "RADIO";
+      document.getElementById("ciclosField").classList.toggle("hidden", !isBattery);
+      document.getElementById("ciclos").disabled = !isBattery;
+      document.getElementById("prefixo").closest("div").classList.toggle("hidden", !isDrone);
+      document.getElementById("ciclosInfoField").classList.toggle("hidden", !isBattery);
+      document.getElementById("prefixoInfoField").classList.toggle("hidden", !isDrone);
+      document.getElementById("droneLabel").textContent = isRadio ? "QUAL DRONE ESTÁ BINDADO" : "DRONE";
+    }
+
     document.getElementById("deleteButton").onclick = async () => {
-      if (!confirm("Deseja realmente excluir esta bateria?")) return;
+      if (!confirm("Deseja realmente excluir este equipamento?")) return;
       const response = await fetch("/api/baterias/" + battery.id, {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({})
       });
-      if (!response.ok) return toast("Erro ao excluir a bateria.");
+      if (!response.ok) return toast("Erro ao excluir o equipamento.");
       window.location.href = "/";
     };
 
