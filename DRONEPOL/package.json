@@ -1,13 +1,38 @@
 {
-  "name": "mvp-baterias-dronepol",
+  "name": "dronepol",
   "version": "1.0.0",
-  "description": "MVP para leitura de QR Code e cadastro/consulta de baterias de drones.",
-  "main": "server.js",
+  "description": "DronePOL",
+  "main": "electron-main.js",
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "electron": "electron electron-main.js",
+    "build:win": "electron-builder --win"
   },
   "dependencies": {
-    "better-sqlite3": "^11.10.0",
+    "@capacitor/android": "^8.5.2",
+    "@capacitor/cli": "^8.5.2",
+    "@capacitor/core": "^8.5.2",
+    "better-sqlite3": "^12.4.1",
     "express": "^5.1.0"
+  },
+  "devDependencies": {
+    "electron": "^44.2.0",
+    "electron-builder": "^26.15.3",
+    "typescript": "^7.0.2",
+    "wait-on": "^9.1.0"
+  },
+  "build": {
+    "appId": "br.gov.dronepol",
+    "productName": "DronePOL",
+    "files": [
+      "electron-main.js",
+      "server.js",
+      "public/**/*",
+      "node_modules/**/*",
+      "package.json"
+    ],
+    "win": {
+      "target": "nsis"
+    }
   }
 }
