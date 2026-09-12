@@ -24,13 +24,6 @@
   "build": {
     "appId": "br.gov.dronepol",
     "productName": "DronePOL",
-    "files": [
-      "electron-main.js",
-      "server.js",
-      "public/**/*",
-      "node_modules/**/*",
-      "package.json"
-    ],
     "win": {
       "target": "nsis"
     }
