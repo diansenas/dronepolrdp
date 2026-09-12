@@ -8,7 +8,7 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 // Banco de dados SQLite
-const db = new Database("dronepol.db");
+const db = new Database(process.env.DRONEPOL_DB_PATH || "dronepol.db");
 const sessoes = new Map();
 
 const servidores = [
@@ -355,7 +355,12 @@ app.post("/api/auth/logout", (req, res) => {
 });
 
 app.use((req, res, next) => {
-  if (req.path === "/login.html" || req.path === "/api/auth/login") {
+  if (
+    req.path === "/login.html" ||
+    req.path === "/js/login.js" ||
+    req.path === "/DronePol-2.0V-internet.apk" ||
+    req.path === "/api/auth/login"
+  ) {
     return next();
   }
 
