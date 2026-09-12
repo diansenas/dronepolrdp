@@ -1,0 +1,35 @@
+name: Build DronePOL Windows
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    defaults:
+      run:
+        working-directory: DRONEPOL
+
+    steps:
+      - name: Baixar código
+        uses: actions/checkout@v4
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: DRONEPOL/package-lock.json
+
+      - name: Instalar dependências
+        run: npm ci
+
+      - name: Gerar instalador Windows
+        run: npm run build:win
+
+      - name: Disponibilizar instalador
+        uses: actions/upload-artifact@v4
+        with:
+          name: DronePOL-Windows
+          path: DRONEPOL/dist/*.exe
